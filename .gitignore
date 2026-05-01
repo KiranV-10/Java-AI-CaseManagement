@@ -1,0 +1,17 @@
+# Ignore the implementation document
+Docs/Implementation.md
+
+# Common Java and IDE ignores
+*.class
+*.jar
+*.war
+*.ear
+/target/
+out/
+/.classpath
+/.project
+/.settings/
+.idea/
+.vscode/
+*.log
+.DS_Store
