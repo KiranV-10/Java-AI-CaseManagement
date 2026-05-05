@@ -11,12 +11,29 @@ export default function DashboardPage({ user }: { user: User }) {
   const [filters, setFilters] = useState({ status: '', priority: '', keyword: '' });
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get('/dashboard/metrics').then(r => setMetrics(r.data));
+    let active = true;
+
+    api.get('/dashboard/metrics')
+      .then(r => {
+        if (active) setMetrics(r.data);
+      })
+      .catch(() => {
+        if (active) setError('Unable to load dashboard metrics.');
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
+    setLoading(true);
+    setError('');
+
     const params = new URLSearchParams();
     if (filters.status) params.set('status', filters.status);
     if (filters.priority) params.set('priority', filters.priority);
@@ -25,7 +42,16 @@ export default function DashboardPage({ user }: { user: User }) {
     params.set('size', '15');
 
     api.get<PageResponse<RequestListItem>>(`/staff/requests?${params}`)
-      .then(r => { setRequests(r.data.content); setTotalPages(r.data.totalPages); });
+      .then(r => {
+        setRequests(r.data.content);
+        setTotalPages(r.data.totalPages);
+      })
+      .catch(() => {
+        setRequests([]);
+        setTotalPages(0);
+        setError('Unable to load staff requests.');
+      })
+      .finally(() => setLoading(false));
   }, [filters, page]);
 
   const MetricCard = ({ label, value, color }: { label: string; value: number | string; color: string }) => (
@@ -39,7 +65,13 @@ export default function DashboardPage({ user }: { user: User }) {
     <div className="space-y-6">
       <h1 className="text-xl font-bold">Staff Dashboard</h1>
 
-      {metrics && (
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {metrics ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <MetricCard label="Total Requests" value={metrics.totalRequests} color="border-blue-500" />
           <MetricCard label="New" value={metrics.newRequests} color="border-blue-400" />
@@ -49,6 +81,12 @@ export default function DashboardPage({ user }: { user: User }) {
           <MetricCard label="Resolved This Week" value={metrics.resolvedThisWeek} color="border-green-500" />
           <MetricCard label="Avg Resolution (days)" value={metrics.averageResolutionDays} color="border-gray-400" />
           <MetricCard label="Aging (>7 days)" value={metrics.agingRequests} color="border-yellow-500" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-gray-200">
+            <p className="text-sm text-gray-500">{loading ? 'Loading dashboard metrics...' : 'No dashboard metrics available'}</p>
+          </div>
         </div>
       )}
 
@@ -92,7 +130,7 @@ export default function DashboardPage({ user }: { user: User }) {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {requests.map(r => (
+            {requests.length > 0 ? requests.map(r => (
               <tr key={r.id} className="hover:bg-gray-50">
                 <td className="px-3 py-2 font-mono text-xs">{r.requestNumber}</td>
                 <td className="px-3 py-2 max-w-[200px] truncate">{r.title}</td>
@@ -106,7 +144,13 @@ export default function DashboardPage({ user }: { user: User }) {
                   <Link to={`/staff/requests/${r.id}`} className="text-blue-600 hover:underline text-xs">Open</Link>
                 </td>
               </tr>
-            ))}
+            )) : !loading && (
+              <tr>
+                <td colSpan={9} className="px-3 py-8 text-center text-sm text-gray-500">
+                  No requests found for the current filters.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
 

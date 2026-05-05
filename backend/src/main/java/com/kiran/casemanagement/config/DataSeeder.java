@@ -10,6 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -24,43 +25,27 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (userRepository.count() > 0) {
-            log.info("Database already seeded, skipping.");
+        AppUser citizen = ensureUser("citizen@example.com", "Demo Citizen", RoleName.CITIZEN);
+        AppUser worker = ensureUser("worker@example.com", "Jordan Caseworker", RoleName.CASE_WORKER);
+        ensureUser("admin@example.com", "Taylor Admin", RoleName.ADMIN);
+
+        RequestCategory unemployment = ensureCategory("Unemployment Benefits",
+                "Questions about unemployment insurance and benefits", Priority.MEDIUM, 7);
+        RequestCategory wageHour = ensureCategory("Wage and Hour Concern",
+                "Issues related to wages, overtime, and working hours", Priority.HIGH, 5);
+        RequestCategory workersComp = ensureCategory("Workers' Compensation",
+                "Workplace injury and compensation claims", Priority.HIGH, 5);
+        RequestCategory youth = ensureCategory("Youth Employment",
+                "Youth work permits and employment regulations", Priority.MEDIUM, 7);
+        RequestCategory laborStandards = ensureCategory("Labor Standards",
+                "General labor law and workplace standards", Priority.MEDIUM, 10);
+
+        if (requestRepository.count() > 0) {
+            log.info("Demo requests already exist, skipping request seeding.");
             return;
         }
 
-        log.info("Seeding database with demo data...");
-
-        AppUser citizen = userRepository.save(AppUser.builder()
-                .fullName("Demo Citizen").email("citizen@example.com")
-                .passwordHash("password123").role(RoleName.CITIZEN).active(true).build());
-
-        AppUser worker = userRepository.save(AppUser.builder()
-                .fullName("Jordan Caseworker").email("worker@example.com")
-                .passwordHash("password123").role(RoleName.CASE_WORKER).active(true).build());
-
-        AppUser admin = userRepository.save(AppUser.builder()
-                .fullName("Taylor Admin").email("admin@example.com")
-                .passwordHash("password123").role(RoleName.ADMIN).active(true).build());
-
-        RequestCategory unemployment = categoryRepository.save(RequestCategory.builder()
-                .name("Unemployment Benefits").description("Questions about unemployment insurance and benefits")
-                .defaultPriority(Priority.MEDIUM).slaDays(7).active(true).build());
-        RequestCategory wageHour = categoryRepository.save(RequestCategory.builder()
-                .name("Wage and Hour Concern").description("Issues related to wages, overtime, and working hours")
-                .defaultPriority(Priority.HIGH).slaDays(5).active(true).build());
-        RequestCategory workersComp = categoryRepository.save(RequestCategory.builder()
-                .name("Workers' Compensation").description("Workplace injury and compensation claims")
-                .defaultPriority(Priority.HIGH).slaDays(5).active(true).build());
-        RequestCategory youth = categoryRepository.save(RequestCategory.builder()
-                .name("Youth Employment").description("Youth work permits and employment regulations")
-                .defaultPriority(Priority.MEDIUM).slaDays(7).active(true).build());
-        RequestCategory laborStandards = categoryRepository.save(RequestCategory.builder()
-                .name("Labor Standards").description("General labor law and workplace standards")
-                .defaultPriority(Priority.MEDIUM).slaDays(10).active(true).build());
-        RequestCategory general = categoryRepository.save(RequestCategory.builder()
-                .name("General Inquiry").description("General questions about labor services")
-                .defaultPriority(Priority.LOW).slaDays(14).active(true).build());
+        log.info("Seeding demo requests...");
 
         List<ServiceRequest> requests = List.of(
                 createRequest("REQ-2026-0001", citizen, wageHour, "Unpaid wages for two weeks",
@@ -106,6 +91,28 @@ public class DataSeeder implements CommandLineRunner {
 
         log.info("Database seeded with {} users, {} categories, {} requests.",
                 userRepository.count(), categoryRepository.count(), requestRepository.count());
+    }
+
+    private AppUser ensureUser(String email, String fullName, RoleName role) {
+        return userRepository.findByEmail(email)
+                .orElseGet(() -> userRepository.save(AppUser.builder()
+                        .fullName(fullName)
+                        .email(email)
+                        .passwordHash("password123")
+                        .role(role)
+                        .active(true)
+                        .build()));
+    }
+
+    private RequestCategory ensureCategory(String name, String description, Priority priority, int slaDays) {
+        return categoryRepository.findByName(name)
+                .orElseGet(() -> categoryRepository.save(RequestCategory.builder()
+                        .name(name)
+                        .description(description)
+                        .defaultPriority(priority)
+                        .slaDays(slaDays)
+                        .active(true)
+                        .build()));
     }
 
     private ServiceRequest createRequest(String number, AppUser citizen, RequestCategory category,
