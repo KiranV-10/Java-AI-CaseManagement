@@ -30,5 +30,4 @@ out/
 .DS_Store
 Thumbs.db
 
-.claude/
-.claude/worktrees/determined-bhabha-65c46a
+.claude/worktrees/
