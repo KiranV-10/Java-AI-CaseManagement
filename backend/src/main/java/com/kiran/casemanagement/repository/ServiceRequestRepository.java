@@ -43,11 +43,12 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
     @Query("SELECT COUNT(sr) FROM ServiceRequest sr WHERE sr.resolvedAt >= :since")
     long countResolvedSince(@Param("since") LocalDateTime since);
 
-    @Query("SELECT AVG(EXTRACT(EPOCH FROM (sr.resolvedAt - sr.createdAt)) / 86400) " +
-           "FROM ServiceRequest sr WHERE sr.resolvedAt IS NOT NULL")
+    @Query(value = "SELECT AVG(EXTRACT(EPOCH FROM (resolved_at - created_at)) / 86400) " +
+                   "FROM service_requests WHERE resolved_at IS NOT NULL", nativeQuery = true)
     Double averageResolutionDays();
 
-    @Query("SELECT COUNT(sr) FROM ServiceRequest sr WHERE sr.status NOT IN ('RESOLVED', 'CLOSED') " +
+    @Query("SELECT COUNT(sr) FROM ServiceRequest sr WHERE sr.status NOT IN " +
+           "(com.kiran.casemanagement.enums.RequestStatus.RESOLVED, com.kiran.casemanagement.enums.RequestStatus.CLOSED) " +
            "AND sr.createdAt < :cutoff")
     long countAgingRequests(@Param("cutoff") LocalDateTime cutoff);
 
