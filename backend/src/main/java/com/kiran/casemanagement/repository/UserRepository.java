@@ -1,0 +1,13 @@
+package com.kiran.casemanagement.repository;
+
+import com.kiran.casemanagement.entity.AppUser;
+import com.kiran.casemanagement.enums.RoleName;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+import java.util.Optional;
+
+public interface UserRepository extends JpaRepository<AppUser, Long> {
+    Optional<AppUser> findByEmail(String email);
+    List<AppUser> findByRole(RoleName role);
+    boolean existsByEmail(String email);
+}

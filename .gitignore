@@ -1,17 +1,33 @@
 # Ignore the implementation document
 Docs/Implementation.md
+Docs/SUMMARY.md
 
-# Common Java and IDE ignores
+# Java
+backend/target/
 *.class
 *.jar
 *.war
 *.ear
-/target/
-out/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.idea/
+*.iml
+.vscode/
 /.classpath
 /.project
 /.settings/
-.idea/
-.vscode/
+out/
+
+# Environment
+.env
 *.log
+
+# OS
 .DS_Store
+Thumbs.db
+
+.claude/worktrees/
