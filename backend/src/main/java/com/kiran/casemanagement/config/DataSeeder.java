@@ -10,7 +10,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -39,6 +38,8 @@ public class DataSeeder implements CommandLineRunner {
                 "Youth work permits and employment regulations", Priority.MEDIUM, 7);
         RequestCategory laborStandards = ensureCategory("Labor Standards",
                 "General labor law and workplace standards", Priority.MEDIUM, 10);
+        ensureCategory("General Inquiry",
+                "General questions about labor services", Priority.LOW, 14);
 
         if (requestRepository.count() > 0) {
             log.info("Demo requests already exist, skipping request seeding.");

@@ -11,18 +11,26 @@ export default function DashboardPage({ user }: { user: User }) {
   const [filters, setFilters] = useState({ status: '', priority: '', keyword: '' });
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [metricsLoading, setMetricsLoading] = useState(true);
+  const [requestsLoading, setRequestsLoading] = useState(true);
+  const [metricsError, setMetricsError] = useState('');
+  const [requestsError, setRequestsError] = useState('');
 
   useEffect(() => {
     let active = true;
 
     api.get('/dashboard/metrics')
       .then(r => {
-        if (active) setMetrics(r.data);
+        if (active) {
+          setMetrics(r.data);
+          setMetricsError('');
+        }
       })
       .catch(() => {
-        if (active) setError('Unable to load dashboard metrics.');
+        if (active) setMetricsError('Unable to load dashboard metrics.');
+      })
+      .finally(() => {
+        if (active) setMetricsLoading(false);
       });
 
     return () => {
@@ -31,8 +39,8 @@ export default function DashboardPage({ user }: { user: User }) {
   }, []);
 
   useEffect(() => {
-    setLoading(true);
-    setError('');
+    setRequestsLoading(true);
+    setRequestsError('');
 
     const params = new URLSearchParams();
     if (filters.status) params.set('status', filters.status);
@@ -49,9 +57,9 @@ export default function DashboardPage({ user }: { user: User }) {
       .catch(() => {
         setRequests([]);
         setTotalPages(0);
-        setError('Unable to load staff requests.');
+        setRequestsError('Unable to load staff requests.');
       })
-      .finally(() => setLoading(false));
+      .finally(() => setRequestsLoading(false));
   }, [filters, page]);
 
   const MetricCard = ({ label, value, color }: { label: string; value: number | string; color: string }) => (
@@ -65,9 +73,18 @@ export default function DashboardPage({ user }: { user: User }) {
     <div className="space-y-6">
       <h1 className="text-xl font-bold">Staff Dashboard</h1>
 
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
+      {(metricsError || requestsError) && (
+        <div className="space-y-2">
+          {metricsError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {metricsError}
+            </div>
+          )}
+          {requestsError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {requestsError}
+            </div>
+          )}
         </div>
       )}
 
@@ -85,7 +102,7 @@ export default function DashboardPage({ user }: { user: User }) {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white rounded-lg shadow p-4 border-l-4 border-gray-200">
-            <p className="text-sm text-gray-500">{loading ? 'Loading dashboard metrics...' : 'No dashboard metrics available'}</p>
+            <p className="text-sm text-gray-500">{metricsLoading ? 'Loading dashboard metrics...' : 'No dashboard metrics available'}</p>
           </div>
         </div>
       )}
@@ -144,7 +161,7 @@ export default function DashboardPage({ user }: { user: User }) {
                   <Link to={`/staff/requests/${r.id}`} className="text-blue-600 hover:underline text-xs">Open</Link>
                 </td>
               </tr>
-            )) : !loading && (
+            )) : !requestsLoading && (
               <tr>
                 <td colSpan={9} className="px-3 py-8 text-center text-sm text-gray-500">
                   No requests found for the current filters.
