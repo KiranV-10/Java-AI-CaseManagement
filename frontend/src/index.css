@@ -7,6 +7,13 @@ body {
 }
 
 @layer components {
+  .app-background {
+    background:
+      radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 30rem),
+      radial-gradient(circle at top right, rgba(14, 165, 233, 0.08), transparent 28rem),
+      linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  }
+
   .page-heading {
     @apply flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between;
   }
@@ -20,11 +27,35 @@ body {
   }
 
   .app-card {
-    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+    @apply rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm shadow-slate-200/60;
   }
 
   .app-card-body {
     @apply p-5 sm:p-6;
+  }
+
+  .hero-panel {
+    @apply overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-900 via-blue-800 to-sky-700 p-6 text-white shadow-lg shadow-blue-900/15;
+  }
+
+  .metric-card {
+    @apply rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 transition hover:-translate-y-0.5 hover:shadow-md;
+  }
+
+  .metric-label {
+    @apply text-xs font-semibold uppercase tracking-wide text-slate-500;
+  }
+
+  .metric-value {
+    @apply mt-2 text-3xl font-semibold tracking-tight text-slate-900;
+  }
+
+  .soft-alert {
+    @apply rounded-2xl border px-4 py-3 text-sm shadow-sm;
+  }
+
+  .empty-state {
+    @apply rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center;
   }
 
   .btn-primary {
@@ -65,5 +96,9 @@ body {
 
   .data-table tbody tr {
     @apply transition hover:bg-slate-50;
+  }
+
+  .kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-blue-700;
   }
 }

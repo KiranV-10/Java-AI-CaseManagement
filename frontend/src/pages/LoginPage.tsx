@@ -40,16 +40,33 @@ export default function LoginPage({ onLogin }: Props) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-slate-50 to-white px-4">
-      <div className="app-card w-full max-w-md">
-        <div className="app-card-body">
-        <div className="text-center mb-6">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-900 text-sm font-bold text-white shadow-sm">
+    <div className="app-background min-h-screen flex items-center justify-center px-4 py-10">
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-300/40 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="hidden bg-gradient-to-br from-blue-950 via-blue-900 to-sky-700 p-10 text-white lg:flex lg:flex-col lg:justify-between">
+          <div>
+            <div className="mb-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-sm font-bold ring-1 ring-white/20">
               LS
             </div>
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Labor Services</h1>
-            <p className="text-sm text-slate-500 mt-1">Case Management Portal</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-100">Labor Services</p>
+            <h1 className="mt-4 max-w-sm text-4xl font-semibold tracking-tight">A simpler way to manage service requests.</h1>
+            <p className="mt-4 max-w-md text-sm leading-6 text-blue-100">
+              Citizens can submit requests, staff can triage cases, and administrators can review activity in one calm workspace.
+            </p>
+          </div>
+          <div className="grid gap-3 text-sm text-blue-50">
+            <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15">Guided request intake</div>
+            <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15">Staff dashboard and case workflow</div>
+            <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15">Admin oversight and audit history</div>
+          </div>
         </div>
+        <div className="p-6 sm:p-10">
+          <div className="mb-8 text-center lg:text-left">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-900 text-sm font-bold text-white shadow-sm lg:mx-0">
+              LS
+            </div>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Welcome Back</h1>
+            <p className="text-sm text-slate-500 mt-1">Sign in to the case management portal.</p>
+          </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

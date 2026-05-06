@@ -23,8 +23,8 @@ export default function Layout({ user, onLogout }: Props) {
     }`;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <header className="bg-blue-900 text-white shadow-lg shadow-blue-950/10">
+    <div className="app-background min-h-screen flex flex-col">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-blue-950/95 text-white shadow-lg shadow-blue-950/10 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <Link to="/" className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-base font-bold ring-1 ring-white/20">
@@ -71,10 +71,10 @@ export default function Layout({ user, onLogout }: Props) {
           )}
         </div>
       </header>
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 sm:py-10">
         <Outlet />
       </main>
-      <footer className="border-t border-slate-200 bg-white text-center text-xs text-slate-500 py-4">
+      <footer className="border-t border-slate-200 bg-white/80 text-center text-xs text-slate-500 py-4 backdrop-blur">
         Labor Services Case Management Portal
       </footer>
     </div>

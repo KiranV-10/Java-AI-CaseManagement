@@ -38,15 +38,20 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="page-heading">
-        <div>
-          <h1 className="page-title">Manage Categories</h1>
-          <p className="page-subtitle">Maintain request categories, priority defaults, and service level targets.</p>
+      <div className="hero-panel">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-100">Admin Console</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight">Manage Categories</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100">
+              Keep routing, default priorities, and SLA targets aligned with agency operations.
+            </p>
+          </div>
+          <button onClick={() => { setShowForm(true); setEditId(null); setForm({ name: '', description: '', defaultPriority: 'MEDIUM', slaDays: 7 }); }}
+            className="inline-flex rounded-xl bg-white px-4 py-2 text-sm font-semibold text-blue-900 shadow-sm transition hover:bg-blue-50">
+            Add Category
+          </button>
         </div>
-        <button onClick={() => { setShowForm(true); setEditId(null); setForm({ name: '', description: '', defaultPriority: 'MEDIUM', slaDays: 7 }); }}
-          className="btn-primary">
-          Add Category
-        </button>
       </div>
 
       {showForm && (

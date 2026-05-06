@@ -93,12 +93,14 @@ export default function NewRequestPage({ user }: { user: User }) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="page-title">Submit a Service Request</h1>
-        <p className="page-subtitle">Tell us what happened and how staff can follow up with you.</p>
-      </div>
-      <form onSubmit={handleSubmit} className="app-card app-card-body space-y-5">
+    <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1fr_320px]">
+      <div>
+        <div className="mb-6">
+          <p className="kicker">Request Intake</p>
+          <h1 className="page-title mt-2">Submit a Service Request</h1>
+          <p className="page-subtitle">Tell us what happened and how staff can follow up with you.</p>
+        </div>
+        <form onSubmit={handleSubmit} className="app-card app-card-body space-y-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-slate-700 mb-1">Category *</label>
@@ -152,7 +154,22 @@ export default function NewRequestPage({ user }: { user: User }) {
           className="btn-primary w-full">
           {submitting ? 'Submitting...' : 'Submit Request'}
         </button>
-      </form>
+        </form>
+      </div>
+      <aside className="space-y-4">
+        <div className="app-card app-card-body">
+          <h2 className="font-semibold text-slate-900">Before you submit</h2>
+          <ul className="mt-3 space-y-3 text-sm leading-6 text-slate-600">
+            <li>Use a short, clear title so staff can route your request quickly.</li>
+            <li>Include dates, employer details, and any relevant context in the description.</li>
+            <li>AI may suggest a category or priority, but staff will make the final review.</li>
+          </ul>
+        </div>
+        <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5 text-sm text-blue-800">
+          <p className="font-semibold">Need urgent help?</p>
+          <p className="mt-2 leading-6">Submit the request with as much detail as possible. Staff can adjust priority after review.</p>
+        </div>
+      </aside>
     </div>
   );
 }

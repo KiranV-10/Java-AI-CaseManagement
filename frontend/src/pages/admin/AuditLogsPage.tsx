@@ -14,9 +14,10 @@ export default function AuditLogsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="page-title">Audit Logs</h1>
-        <p className="page-subtitle">Review system activity and changes made by staff.</p>
+      <div className="hero-panel">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-100">Admin Console</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight">Audit Logs</h1>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100">Review system activity and changes made by staff.</p>
       </div>
 
       <div className="table-wrap overflow-x-auto">
