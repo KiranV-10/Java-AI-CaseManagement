@@ -11,10 +11,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, Long>, JpaSpecificationExecutor<ServiceRequest> {
 
     List<ServiceRequest> findByCitizenIdOrderByCreatedAtDesc(Long citizenId);
+
+    Optional<ServiceRequest> findByRequestNumber(String requestNumber);
 
     @Query("SELECT sr FROM ServiceRequest sr WHERE " +
            "(:status IS NULL OR sr.status = :status) AND " +

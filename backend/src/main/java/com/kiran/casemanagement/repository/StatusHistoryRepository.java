@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface StatusHistoryRepository extends JpaRepository<CaseStatusHistory, Long> {
     List<CaseStatusHistory> findByRequestIdOrderByCreatedAtDesc(Long requestId);
+    void deleteByRequestId(Long requestId);
 }
