@@ -37,33 +37,36 @@ export default function CategoriesPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Manage Categories</h1>
+    <div className="space-y-6">
+      <div className="page-heading">
+        <div>
+          <h1 className="page-title">Manage Categories</h1>
+          <p className="page-subtitle">Maintain request categories, priority defaults, and service level targets.</p>
+        </div>
         <button onClick={() => { setShowForm(true); setEditId(null); setForm({ name: '', description: '', defaultPriority: 'MEDIUM', slaDays: 7 }); }}
-          className="px-4 py-2 bg-blue-700 text-white rounded text-sm hover:bg-blue-800">
+          className="btn-primary">
           Add Category
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-5 space-y-3">
-          <h3 className="font-semibold text-sm">{editId ? 'Edit Category' : 'New Category'}</h3>
-          <div className="grid grid-cols-2 gap-3">
+        <form onSubmit={handleSubmit} className="app-card app-card-body space-y-4">
+          <h3 className="font-semibold text-slate-900">{editId ? 'Edit Category' : 'New Category'}</h3>
+          <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
               <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required
-                className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm" />
+                className="form-control" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
               <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm" />
+                className="form-control" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Default Priority</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Default Priority</label>
               <select value={form.defaultPriority} onChange={e => setForm(f => ({ ...f, defaultPriority: e.target.value }))}
-                className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm">
+                className="form-control">
                 <option value="LOW">Low</option>
                 <option value="MEDIUM">Medium</option>
                 <option value="HIGH">High</option>
@@ -71,49 +74,49 @@ export default function CategoriesPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">SLA Days</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">SLA Days</label>
               <input type="number" value={form.slaDays} onChange={e => setForm(f => ({ ...f, slaDays: Number(e.target.value) }))}
-                className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm" />
+                className="form-control" />
             </div>
           </div>
           <div className="flex gap-2">
-            <button type="submit" className="px-4 py-1.5 bg-blue-700 text-white rounded text-sm hover:bg-blue-800">
+            <button type="submit" className="btn-primary">
               {editId ? 'Update' : 'Create'}
             </button>
             <button type="button" onClick={() => { setShowForm(false); setEditId(null); }}
-              className="px-4 py-1.5 border rounded text-sm">Cancel</button>
+              className="btn-secondary">Cancel</button>
           </div>
         </form>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
+      <div className="table-wrap overflow-x-auto">
+        <table className="data-table min-w-[760px]">
+          <thead>
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Description</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Priority</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">SLA</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-              <th className="px-4 py-3"></th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Priority</th>
+              <th>SLA</th>
+              <th>Status</th>
+              <th></th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody>
             {categories.map(c => (
-              <tr key={c.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium">{c.name}</td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{c.description}</td>
-                <td className="px-4 py-3 text-xs">{c.defaultPriority}</td>
-                <td className="px-4 py-3 text-xs">{c.slaDays} days</td>
-                <td className="px-4 py-3">
-                  <span className={`text-xs font-medium ${c.active ? 'text-green-600' : 'text-red-500'}`}>
+              <tr key={c.id}>
+                <td className="font-medium text-slate-900">{c.name}</td>
+                <td className="text-xs text-slate-500">{c.description}</td>
+                <td className="text-xs font-medium">{c.defaultPriority}</td>
+                <td className="text-xs">{c.slaDays} days</td>
+                <td>
+                  <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${c.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                     {c.active ? 'Active' : 'Inactive'}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-right space-x-2">
-                  <button onClick={() => handleEdit(c)} className="text-blue-600 hover:underline text-xs">Edit</button>
+                <td className="text-right space-x-3">
+                  <button onClick={() => handleEdit(c)} className="text-xs font-semibold text-blue-700 hover:text-blue-900">Edit</button>
                   {c.active && (
-                    <button onClick={() => handleDeactivate(c.id)} className="text-red-500 hover:underline text-xs">Deactivate</button>
+                    <button onClick={() => handleDeactivate(c.id)} className="text-xs font-semibold text-red-600 hover:text-red-800">Deactivate</button>
                   )}
                 </td>
               </tr>

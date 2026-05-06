@@ -15,48 +15,52 @@ export default function MyRequestsPage({ user }: { user: User }) {
       .finally(() => setLoading(false));
   }, [user.userId]);
 
-  if (loading) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (loading) return <div className="app-card app-card-body text-sm text-slate-500">Loading your requests...</div>;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold">My Requests</h1>
+    <div className="space-y-6">
+      <div className="page-heading">
+        <div>
+          <h1 className="page-title">My Requests</h1>
+          <p className="page-subtitle">Track submitted cases and see their latest status.</p>
+        </div>
         <Link to="/citizen/new-request"
-          className="px-4 py-2 bg-blue-700 text-white rounded text-sm hover:bg-blue-800">
+          className="btn-primary">
           New Request
         </Link>
       </div>
 
       {requests.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-          <p>You have no requests yet.</p>
-          <Link to="/citizen/new-request" className="text-blue-600 underline text-sm">Submit your first request</Link>
+        <div className="app-card app-card-body text-center">
+          <p className="font-medium text-slate-900">You have no requests yet.</p>
+          <p className="mt-1 text-sm text-slate-500">Start a request when you need help with a labor service concern.</p>
+          <Link to="/citizen/new-request" className="mt-4 inline-flex text-sm font-semibold text-blue-700 hover:text-blue-900">Submit your first request</Link>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b">
+        <div className="table-wrap overflow-x-auto">
+          <table className="data-table min-w-[760px]">
+            <thead>
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Request #</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Title</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Category</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Priority</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Submitted</th>
-                <th className="px-4 py-3"></th>
+                <th>Request #</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Submitted</th>
+                <th></th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody>
               {requests.map(r => (
-                <tr key={r.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-mono text-xs">{r.requestNumber}</td>
-                  <td className="px-4 py-3">{r.title}</td>
-                  <td className="px-4 py-3 text-gray-600">{r.categoryName}</td>
-                  <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
-                  <td className="px-4 py-3"><PriorityBadge priority={r.priority} /></td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">{new Date(r.createdAt).toLocaleDateString()}</td>
-                  <td className="px-4 py-3">
-                    <Link to={`/citizen/requests/${r.id}`} className="text-blue-600 hover:underline text-xs">View</Link>
+                <tr key={r.id}>
+                  <td className="font-mono text-xs text-slate-600">{r.requestNumber}</td>
+                  <td className="font-medium text-slate-900">{r.title}</td>
+                  <td>{r.categoryName}</td>
+                  <td><StatusBadge status={r.status} /></td>
+                  <td><PriorityBadge priority={r.priority} /></td>
+                  <td className="text-xs text-slate-500">{new Date(r.createdAt).toLocaleDateString()}</td>
+                  <td className="text-right">
+                    <Link to={`/citizen/requests/${r.id}`} className="text-xs font-semibold text-blue-700 hover:text-blue-900">View</Link>
                   </td>
                 </tr>
               ))}

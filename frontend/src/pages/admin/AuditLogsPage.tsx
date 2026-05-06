@@ -13,30 +13,33 @@ export default function AuditLogsPage() {
   }, [page]);
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-bold">Audit Logs</h1>
+    <div className="space-y-6">
+      <div>
+        <h1 className="page-title">Audit Logs</h1>
+        <p className="page-subtitle">Review system activity and changes made by staff.</p>
+      </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
+      <div className="table-wrap overflow-x-auto">
+        <table className="data-table min-w-[920px]">
+          <thead>
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Action</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Entity</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Performed By</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Old Value</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">New Value</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-600">Timestamp</th>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>Performed By</th>
+              <th>Old Value</th>
+              <th>New Value</th>
+              <th>Timestamp</th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody>
             {logs.map(l => (
-              <tr key={l.id} className="hover:bg-gray-50 text-xs">
-                <td className="px-4 py-2 font-medium">{l.action}</td>
-                <td className="px-4 py-2 text-gray-500">{l.entityType} #{l.entityId}</td>
-                <td className="px-4 py-2">{l.performedByName}</td>
-                <td className="px-4 py-2 text-gray-400 max-w-[150px] truncate">{l.oldValue || '—'}</td>
-                <td className="px-4 py-2 text-gray-600 max-w-[150px] truncate">{l.newValue || '—'}</td>
-                <td className="px-4 py-2 text-gray-400">{new Date(l.createdAt).toLocaleString()}</td>
+              <tr key={l.id}>
+                <td className="text-xs font-semibold text-slate-900">{l.action}</td>
+                <td className="text-xs text-slate-500">{l.entityType} #{l.entityId}</td>
+                <td className="text-xs">{l.performedByName}</td>
+                <td className="max-w-[150px] truncate text-xs text-slate-400">{l.oldValue || '—'}</td>
+                <td className="max-w-[150px] truncate text-xs text-slate-600">{l.newValue || '—'}</td>
+                <td className="text-xs text-slate-500">{new Date(l.createdAt).toLocaleString()}</td>
               </tr>
             ))}
           </tbody>
@@ -46,10 +49,10 @@ export default function AuditLogsPage() {
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
-            className="px-3 py-1 border rounded text-sm disabled:opacity-50">Prev</button>
-          <span className="text-sm text-gray-500">Page {page + 1} of {totalPages}</span>
+            className="btn-secondary px-3 py-1.5">Prev</button>
+          <span className="text-sm text-slate-500">Page {page + 1} of {totalPages}</span>
           <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
-            className="px-3 py-1 border rounded text-sm disabled:opacity-50">Next</button>
+            className="btn-secondary px-3 py-1.5">Next</button>
         </div>
       )}
     </div>

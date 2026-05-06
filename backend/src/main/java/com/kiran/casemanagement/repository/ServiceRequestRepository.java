@@ -6,12 +6,13 @@ import com.kiran.casemanagement.enums.RequestStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, Long> {
+public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, Long>, JpaSpecificationExecutor<ServiceRequest> {
 
     List<ServiceRequest> findByCitizenIdOrderByCreatedAtDesc(Long citizenId);
 
@@ -20,11 +21,26 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
            "(:categoryId IS NULL OR sr.category.id = :categoryId) AND " +
            "(:priority IS NULL OR sr.priority = :priority) AND " +
            "(:assignedToId IS NULL OR sr.assignedTo.id = :assignedToId) AND " +
-           "(:keywordPattern IS NULL OR LOWER(sr.title) LIKE :keywordPattern " +
-           "OR LOWER(sr.description) LIKE :keywordPattern) AND " +
            "(:fromDate IS NULL OR sr.createdAt >= :fromDate) AND " +
            "(:toDate IS NULL OR sr.createdAt <= :toDate)")
     Page<ServiceRequest> findWithFilters(
+            @Param("status") RequestStatus status,
+            @Param("categoryId") Long categoryId,
+            @Param("priority") Priority priority,
+            @Param("assignedToId") Long assignedToId,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate,
+            Pageable pageable);
+
+    @Query("SELECT sr FROM ServiceRequest sr WHERE " +
+           "(:status IS NULL OR sr.status = :status) AND " +
+           "(:categoryId IS NULL OR sr.category.id = :categoryId) AND " +
+           "(:priority IS NULL OR sr.priority = :priority) AND " +
+           "(:assignedToId IS NULL OR sr.assignedTo.id = :assignedToId) AND " +
+           "(LOWER(sr.title) LIKE :keywordPattern OR LOWER(sr.requestNumber) LIKE :keywordPattern) AND " +
+           "(:fromDate IS NULL OR sr.createdAt >= :fromDate) AND " +
+           "(:toDate IS NULL OR sr.createdAt <= :toDate)")
+    Page<ServiceRequest> findWithFiltersAndKeyword(
             @Param("status") RequestStatus status,
             @Param("categoryId") Long categoryId,
             @Param("priority") Priority priority,

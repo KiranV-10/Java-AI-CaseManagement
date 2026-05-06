@@ -63,25 +63,32 @@ export default function DashboardPage({ user }: { user: User }) {
   }, [filters, page]);
 
   const MetricCard = ({ label, value, color }: { label: string; value: number | string; color: string }) => (
-    <div className={`bg-white rounded-lg shadow p-4 border-l-4 ${color}`}>
-      <p className="text-2xl font-bold">{value}</p>
-      <p className="text-xs text-gray-500 mt-1">{label}</p>
+    <div className={`app-card border-l-4 ${color}`}>
+      <div className="p-4">
+        <p className="text-2xl font-semibold text-slate-900">{value}</p>
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mt-1">{label}</p>
+      </div>
     </div>
   );
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold">Staff Dashboard</h1>
+      <div className="page-heading">
+        <div>
+          <h1 className="page-title">Staff Dashboard</h1>
+          <p className="page-subtitle">Monitor request volume, priorities, and case workload.</p>
+        </div>
+      </div>
 
       {(metricsError || requestsError) && (
         <div className="space-y-2">
           {metricsError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {metricsError}
             </div>
           )}
           {requestsError && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {requestsError}
             </div>
           )}
@@ -101,16 +108,23 @@ export default function DashboardPage({ user }: { user: User }) {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg shadow p-4 border-l-4 border-gray-200">
-            <p className="text-sm text-gray-500">{metricsLoading ? 'Loading dashboard metrics...' : 'No dashboard metrics available'}</p>
+          <div className="app-card border-l-4 border-slate-200 p-4">
+            <p className="text-sm text-slate-500">{metricsLoading ? 'Loading dashboard metrics...' : 'No dashboard metrics available'}</p>
           </div>
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="flex flex-wrap gap-3 mb-4">
+      <div className="app-card">
+        <div className="app-card-body">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">Requests</h2>
+            <p className="text-sm text-slate-500">Filter and open cases that need attention.</p>
+          </div>
+        </div>
+        <div className="mb-5 grid gap-3 md:grid-cols-[180px_180px_1fr]">
           <select value={filters.status} onChange={e => { setFilters(f => ({ ...f, status: e.target.value })); setPage(0); }}
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm">
+            className="form-control">
             <option value="">All Statuses</option>
             <option value="NEW">New</option>
             <option value="IN_REVIEW">In Review</option>
@@ -119,7 +133,7 @@ export default function DashboardPage({ user }: { user: User }) {
             <option value="CLOSED">Closed</option>
           </select>
           <select value={filters.priority} onChange={e => { setFilters(f => ({ ...f, priority: e.target.value })); setPage(0); }}
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm">
+            className="form-control">
             <option value="">All Priorities</option>
             <option value="LOW">Low</option>
             <option value="MEDIUM">Medium</option>
@@ -128,58 +142,61 @@ export default function DashboardPage({ user }: { user: User }) {
           </select>
           <input value={filters.keyword}
             onChange={e => { setFilters(f => ({ ...f, keyword: e.target.value })); setPage(0); }}
-            placeholder="Search..."
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm flex-1 min-w-[200px]" />
+            placeholder="Search request number or title..."
+            className="form-control" />
         </div>
 
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
+        <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <table className="data-table min-w-[900px]">
+          <thead>
             <tr>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Request #</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Title</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Citizen</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Category</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Status</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Priority</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Assigned</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Date</th>
-              <th className="px-3 py-2"></th>
+              <th>Request #</th>
+              <th>Title</th>
+              <th>Citizen</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Assigned</th>
+              <th>Date</th>
+              <th></th>
             </tr>
           </thead>
-          <tbody className="divide-y">
+          <tbody>
             {requests.length > 0 ? requests.map(r => (
-              <tr key={r.id} className="hover:bg-gray-50">
-                <td className="px-3 py-2 font-mono text-xs">{r.requestNumber}</td>
-                <td className="px-3 py-2 max-w-[200px] truncate">{r.title}</td>
-                <td className="px-3 py-2 text-gray-600 text-xs">{r.citizenName}</td>
-                <td className="px-3 py-2 text-gray-600 text-xs">{r.categoryName}</td>
-                <td className="px-3 py-2"><StatusBadge status={r.status} /></td>
-                <td className="px-3 py-2"><PriorityBadge priority={r.priority} /></td>
-                <td className="px-3 py-2 text-xs text-gray-500">{r.assignedToName || '—'}</td>
-                <td className="px-3 py-2 text-xs text-gray-500">{new Date(r.createdAt).toLocaleDateString()}</td>
-                <td className="px-3 py-2">
-                  <Link to={`/staff/requests/${r.id}`} className="text-blue-600 hover:underline text-xs">Open</Link>
+              <tr key={r.id}>
+                <td className="font-mono text-xs text-slate-600">{r.requestNumber}</td>
+                <td className="max-w-[220px] truncate font-medium text-slate-900">{r.title}</td>
+                <td className="text-xs">{r.citizenName}</td>
+                <td className="text-xs">{r.categoryName}</td>
+                <td><StatusBadge status={r.status} /></td>
+                <td><PriorityBadge priority={r.priority} /></td>
+                <td className="text-xs text-slate-500">{r.assignedToName || 'Unassigned'}</td>
+                <td className="text-xs text-slate-500">{new Date(r.createdAt).toLocaleDateString()}</td>
+                <td className="text-right">
+                  <Link to={`/staff/requests/${r.id}`} className="text-xs font-semibold text-blue-700 hover:text-blue-900">Open</Link>
                 </td>
               </tr>
             )) : !requestsLoading && (
               <tr>
-                <td colSpan={9} className="px-3 py-8 text-center text-sm text-gray-500">
+                <td colSpan={9} className="py-10 text-center text-sm text-slate-500">
                   No requests found for the current filters.
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+        </div>
 
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-4">
             <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
-              className="px-3 py-1 border rounded text-sm disabled:opacity-50">Prev</button>
-            <span className="text-sm text-gray-500">Page {page + 1} of {totalPages}</span>
+              className="btn-secondary px-3 py-1.5">Prev</button>
+            <span className="text-sm text-slate-500">Page {page + 1} of {totalPages}</span>
             <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
-              className="px-3 py-1 border rounded text-sm disabled:opacity-50">Next</button>
+              className="btn-secondary px-3 py-1.5">Next</button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
