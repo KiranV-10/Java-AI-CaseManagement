@@ -8,6 +8,9 @@ import PriorityBadge from '../../components/PriorityBadge';
 export default function MyRequestsPage({ user }: { user: User }) {
   const [requests, setRequests] = useState<RequestListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const openRequests = requests.filter(r => !['RESOLVED', 'CLOSED'].includes(r.status)).length;
+  const waitingRequests = requests.filter(r => r.status === 'WAITING_FOR_CITIZEN').length;
+  const highPriorityRequests = requests.filter(r => r.priority === 'HIGH' || r.priority === 'URGENT').length;
 
   useEffect(() => {
     api.get(`/requests/my?citizenId=${user.userId}`)
@@ -15,53 +18,97 @@ export default function MyRequestsPage({ user }: { user: User }) {
       .finally(() => setLoading(false));
   }, [user.userId]);
 
-  if (loading) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (loading) return <div className="app-card app-card-body text-sm text-slate-500">Loading your requests...</div>;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold">My Requests</h1>
-        <Link to="/citizen/new-request"
-          className="px-4 py-2 bg-blue-700 text-white rounded text-sm hover:bg-blue-800">
-          New Request
-        </Link>
+    <div className="space-y-6">
+      <div className="hero-panel">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-100">Citizen Portal</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight">My Requests</h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-blue-100">Track submitted cases and see updates from staff in one place.</p>
+          </div>
+          <Link to="/citizen/new-request" className="inline-flex rounded-xl bg-white px-4 py-2 text-sm font-semibold text-blue-900 shadow-sm transition hover:bg-blue-50">
+            New Request
+          </Link>
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="metric-card">
+          <p className="metric-label">Open Requests</p>
+          <p className="metric-value">{openRequests}</p>
+          <p className="mt-2 text-xs text-slate-500">Currently active or under review</p>
+        </div>
+        <div className="metric-card">
+          <p className="metric-label">Waiting on You</p>
+          <p className="metric-value">{waitingRequests}</p>
+          <p className="mt-2 text-xs text-slate-500">Requests needing citizen follow-up</p>
+        </div>
+        <div className="metric-card">
+          <p className="metric-label">High Priority</p>
+          <p className="metric-value">{highPriorityRequests}</p>
+          <p className="mt-2 text-xs text-slate-500">Flagged for closer attention</p>
+        </div>
+      </div>
+
+      <div className="page-heading">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Submitted Requests</h2>
+          <p className="page-subtitle">{requests.length} request{requests.length === 1 ? '' : 's'} on file.</p>
+        </div>
       </div>
 
       {requests.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
-          <p>You have no requests yet.</p>
-          <Link to="/citizen/new-request" className="text-blue-600 underline text-sm">Submit your first request</Link>
+        <div className="empty-state">
+          <p className="font-medium text-slate-900">You have no requests yet.</p>
+          <p className="mt-1 text-sm text-slate-500">Start a request when you need help with a labor service concern.</p>
+          <Link to="/citizen/new-request" className="mt-4 inline-flex text-sm font-semibold text-blue-700 hover:text-blue-900">Submit your first request</Link>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b">
+        <div className="app-card overflow-hidden">
+          <div className="border-b border-slate-200 bg-white px-5 py-4">
+            <h3 className="font-semibold text-slate-900">Request History</h3>
+            <p className="mt-1 text-sm text-slate-500">Newest requests are shown first.</p>
+          </div>
+          <div className="overflow-x-auto">
+          <table className="data-table min-w-[860px]">
+            <thead>
               <tr>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Request #</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Title</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Category</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Status</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Priority</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-600">Submitted</th>
-                <th className="px-4 py-3"></th>
+                <th>Request #</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Submitted</th>
+                <th></th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody>
               {requests.map(r => (
-                <tr key={r.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-mono text-xs">{r.requestNumber}</td>
-                  <td className="px-4 py-3">{r.title}</td>
-                  <td className="px-4 py-3 text-gray-600">{r.categoryName}</td>
-                  <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
-                  <td className="px-4 py-3"><PriorityBadge priority={r.priority} /></td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">{new Date(r.createdAt).toLocaleDateString()}</td>
-                  <td className="px-4 py-3">
-                    <Link to={`/citizen/requests/${r.id}`} className="text-blue-600 hover:underline text-xs">View</Link>
+                <tr key={r.id}>
+                  <td>
+                    <span className="rounded-lg bg-slate-100 px-2 py-1 font-mono text-xs font-semibold text-slate-700">
+                      {r.requestNumber}
+                    </span>
+                  </td>
+                  <td>
+                    <p className="font-semibold text-slate-900">{r.title}</p>
+                    <p className="mt-1 text-xs text-slate-500">{r.citizenName}</p>
+                  </td>
+                  <td className="text-sm text-slate-600">{r.categoryName}</td>
+                  <td><StatusBadge status={r.status} /></td>
+                  <td><PriorityBadge priority={r.priority} /></td>
+                  <td className="text-xs text-slate-500">{new Date(r.createdAt).toLocaleDateString()}</td>
+                  <td className="text-right">
+                    <Link to={`/citizen/requests/${r.id}`} className="inline-flex rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100">View</Link>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

@@ -1,13 +1,13 @@
 const colors: Record<string, string> = {
-  LOW: 'bg-gray-100 text-gray-700',
-  MEDIUM: 'bg-blue-100 text-blue-700',
-  HIGH: 'bg-red-100 text-red-700',
-  URGENT: 'bg-red-600 text-white',
+  LOW: 'bg-slate-100 text-slate-600 ring-slate-200',
+  MEDIUM: 'bg-blue-50 text-blue-700 ring-blue-200',
+  HIGH: 'bg-red-50 text-red-700 ring-red-200',
+  URGENT: 'bg-red-600 text-white ring-red-600',
 };
 
 export default function PriorityBadge({ priority }: { priority: string }) {
   return (
-    <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${colors[priority] || 'bg-gray-100 text-gray-600'}`}>
+    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${colors[priority] || 'bg-slate-100 text-slate-600 ring-slate-200'}`}>
       {priority}
     </span>
   );

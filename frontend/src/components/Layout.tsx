@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { User } from '../types';
 
 interface Props {
@@ -17,51 +17,65 @@ export default function Layout({ user, onLogout }: Props) {
   const isStaff = user?.role === 'CASE_WORKER' || user?.role === 'ADMIN';
   const isAdmin = user?.role === 'ADMIN';
   const isCitizen = user?.role === 'CITIZEN';
+  const navClass = ({ isActive }: { isActive: boolean }) =>
+    `rounded-lg px-3 py-2 text-sm font-medium transition ${
+      isActive ? 'bg-blue-700 text-white shadow-sm' : 'text-blue-100 hover:bg-blue-700/60 hover:text-white'
+    }`;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-blue-800 text-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="text-lg font-bold tracking-tight">
-            Labor Services Case Management
+    <div className="app-background min-h-screen flex flex-col">
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-blue-950/95 text-white shadow-lg shadow-blue-950/10 backdrop-blur">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-base font-bold ring-1 ring-white/20">
+              LS
+            </span>
+            <span>
+              <span className="block text-base font-semibold tracking-tight">Labor Services</span>
+              <span className="block text-xs text-blue-100">Case Management Portal</span>
+            </span>
           </Link>
           {user && (
-            <div className="flex items-center gap-4 text-sm">
-              <nav className="flex gap-3">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+              <nav className="flex flex-wrap gap-1">
                 {isCitizen && (
                   <>
-                    <Link to="/citizen/new-request" className="hover:text-blue-200">New Request</Link>
-                    <Link to="/citizen/my-requests" className="hover:text-blue-200">My Requests</Link>
+                    <NavLink to="/citizen/new-request" className={navClass}>New Request</NavLink>
+                    <NavLink to="/citizen/my-requests" className={navClass}>My Requests</NavLink>
                   </>
                 )}
                 {isStaff && (
                   <>
-                    <Link to="/staff/dashboard" className="hover:text-blue-200">Dashboard</Link>
+                    <NavLink to="/staff/dashboard" className={navClass}>Dashboard</NavLink>
                   </>
                 )}
                 {isAdmin && (
                   <>
-                    <Link to="/admin/categories" className="hover:text-blue-200">Categories</Link>
-                    <Link to="/admin/audit-logs" className="hover:text-blue-200">Audit Logs</Link>
+                    <NavLink to="/admin/categories" className={navClass}>Categories</NavLink>
+                    <NavLink to="/admin/audit-logs" className={navClass}>Audit Logs</NavLink>
                   </>
                 )}
               </nav>
-              <span className="text-blue-200 text-xs">
-                {user.fullName} ({user.role.replace('_', ' ')})
-              </span>
+              <div className="hidden h-8 w-px bg-white/20 lg:block" />
+              <div className="flex items-center gap-3">
+                <span className="text-left text-xs text-blue-100">
+                  <span className="block font-medium text-white">{user.fullName}</span>
+                  <span>{user.role.replace('_', ' ')}</span>
+                </span>
               <button onClick={handleLogout}
-                className="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-xs">
+                  className="rounded-lg bg-white/10 px-3 py-2 text-xs font-medium text-white ring-1 ring-white/15 transition hover:bg-white/20">
                 Logout
               </button>
+              </div>
             </div>
           )}
         </div>
       </header>
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 sm:py-10">
         <Outlet />
       </main>
-      <footer className="bg-gray-100 border-t text-center text-xs text-gray-500 py-3">
-        Labor Services AI Case Management Portal
+      <footer className="border-t border-slate-200 bg-white/80 text-center text-xs text-slate-500 py-4 backdrop-blur">
+        Labor Services Case Management Portal
       </footer>
     </div>
   );

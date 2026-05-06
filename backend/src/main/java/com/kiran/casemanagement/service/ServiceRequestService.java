@@ -5,17 +5,21 @@ import com.kiran.casemanagement.entity.*;
 import com.kiran.casemanagement.enums.*;
 import com.kiran.casemanagement.exception.ResourceNotFoundException;
 import com.kiran.casemanagement.repository.*;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -154,10 +158,42 @@ public class ServiceRequestService {
         Priority priorityEnum = priority != null ? Priority.valueOf(priority) : null;
         LocalDateTime from = fromDate != null ? LocalDate.parse(fromDate).atStartOfDay() : null;
         LocalDateTime to = toDate != null ? LocalDate.parse(toDate).atTime(23, 59, 59) : null;
+        String keywordPattern = keyword == null || keyword.isBlank()
+                ? null
+                : "%" + keyword.toLowerCase(Locale.ROOT) + "%";
+
+        Specification<ServiceRequest> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (statusEnum != null) {
+                predicates.add(cb.equal(root.get("status"), statusEnum));
+            }
+            if (categoryId != null) {
+                predicates.add(cb.equal(root.get("category").get("id"), categoryId));
+            }
+            if (priorityEnum != null) {
+                predicates.add(cb.equal(root.get("priority"), priorityEnum));
+            }
+            if (assignedTo != null) {
+                predicates.add(cb.equal(root.get("assignedTo").get("id"), assignedTo));
+            }
+            if (keywordPattern != null) {
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("title")), keywordPattern),
+                        cb.like(cb.lower(root.get("requestNumber")), keywordPattern)));
+            }
+            if (from != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), from));
+            }
+            if (to != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), to));
+            }
+
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return requestRepository.findWithFilters(statusEnum, categoryId, priorityEnum, assignedTo,
-                keyword, from, to, pageable).map(this::toListDto);
+        return requestRepository.findAll(spec, pageable).map(this::toListDto);
     }
 
     @Transactional

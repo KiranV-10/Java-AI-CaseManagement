@@ -31,7 +31,7 @@ public class ServiceRequest {
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false)
     private String description;
 
     @Enumerated(EnumType.STRING)

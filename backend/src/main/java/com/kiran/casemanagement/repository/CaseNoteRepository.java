@@ -7,4 +7,5 @@ import java.util.List;
 public interface CaseNoteRepository extends JpaRepository<CaseNote, Long> {
     List<CaseNote> findByRequestIdOrderByCreatedAtDesc(Long requestId);
     List<CaseNote> findByRequestIdAndInternalOnlyFalseOrderByCreatedAtDesc(Long requestId);
+    void deleteByRequestId(Long requestId);
 }

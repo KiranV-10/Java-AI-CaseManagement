@@ -1,9 +1,9 @@
 const colors: Record<string, string> = {
-  NEW: 'bg-blue-100 text-blue-800',
-  IN_REVIEW: 'bg-yellow-100 text-yellow-800',
-  WAITING_FOR_CITIZEN: 'bg-orange-100 text-orange-800',
-  RESOLVED: 'bg-green-100 text-green-800',
-  CLOSED: 'bg-gray-200 text-gray-700',
+  NEW: 'bg-blue-50 text-blue-700 ring-blue-200',
+  IN_REVIEW: 'bg-amber-50 text-amber-700 ring-amber-200',
+  WAITING_FOR_CITIZEN: 'bg-orange-50 text-orange-700 ring-orange-200',
+  RESOLVED: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+  CLOSED: 'bg-slate-100 text-slate-600 ring-slate-200',
 };
 
 const labels: Record<string, string> = {
@@ -16,7 +16,7 @@ const labels: Record<string, string> = {
 
 export default function StatusBadge({ status }: { status: string }) {
   return (
-    <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${colors[status] || 'bg-gray-100 text-gray-600'}`}>
+    <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${colors[status] || 'bg-slate-100 text-slate-600 ring-slate-200'}`}>
       {labels[status] || status}
     </span>
   );

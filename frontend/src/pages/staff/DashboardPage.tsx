@@ -11,12 +11,37 @@ export default function DashboardPage({ user }: { user: User }) {
   const [filters, setFilters] = useState({ status: '', priority: '', keyword: '' });
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [metricsLoading, setMetricsLoading] = useState(true);
+  const [requestsLoading, setRequestsLoading] = useState(true);
+  const [metricsError, setMetricsError] = useState('');
+  const [requestsError, setRequestsError] = useState('');
 
   useEffect(() => {
-    api.get('/dashboard/metrics').then(r => setMetrics(r.data));
+    let active = true;
+
+    api.get('/dashboard/metrics')
+      .then(r => {
+        if (active) {
+          setMetrics(r.data);
+          setMetricsError('');
+        }
+      })
+      .catch(() => {
+        if (active) setMetricsError('Unable to load dashboard metrics.');
+      })
+      .finally(() => {
+        if (active) setMetricsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
+    setRequestsLoading(true);
+    setRequestsError('');
+
     const params = new URLSearchParams();
     if (filters.status) params.set('status', filters.status);
     if (filters.priority) params.set('priority', filters.priority);
@@ -25,37 +50,100 @@ export default function DashboardPage({ user }: { user: User }) {
     params.set('size', '15');
 
     api.get<PageResponse<RequestListItem>>(`/staff/requests?${params}`)
-      .then(r => { setRequests(r.data.content); setTotalPages(r.data.totalPages); });
+      .then(r => {
+        setRequests(r.data.content);
+        setTotalPages(r.data.totalPages);
+      })
+      .catch(() => {
+        setRequests([]);
+        setTotalPages(0);
+        setRequestsError('Unable to load staff requests.');
+      })
+      .finally(() => setRequestsLoading(false));
   }, [filters, page]);
 
   const MetricCard = ({ label, value, color }: { label: string; value: number | string; color: string }) => (
-    <div className={`bg-white rounded-lg shadow p-4 border-l-4 ${color}`}>
-      <p className="text-2xl font-bold">{value}</p>
-      <p className="text-xs text-gray-500 mt-1">{label}</p>
+    <div className="metric-card">
+      <div className={`mb-4 h-1.5 w-12 rounded-full ${color}`} />
+      <p className="metric-label">{label}</p>
+      <p className="metric-value">{value}</p>
     </div>
   );
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold">Staff Dashboard</h1>
+      <div className="hero-panel">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-100">Staff Workspace</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight">Good to see you, {user.fullName.split(' ')[0]}.</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100">
+              Review new requests, prioritize urgent cases, and keep citizen follow-ups moving.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 rounded-2xl bg-white/10 p-4 text-sm ring-1 ring-white/15 sm:min-w-[320px]">
+            <div>
+              <p className="text-blue-100">Current Queue</p>
+              <p className="mt-1 text-2xl font-semibold">{metrics?.totalRequests ?? '...'}</p>
+            </div>
+            <div>
+              <p className="text-blue-100">Needs Review</p>
+              <p className="mt-1 text-2xl font-semibold">{metrics?.newRequests ?? '...'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      {metrics && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MetricCard label="Total Requests" value={metrics.totalRequests} color="border-blue-500" />
-          <MetricCard label="New" value={metrics.newRequests} color="border-blue-400" />
-          <MetricCard label="High Priority" value={metrics.highPriorityRequests} color="border-red-400" />
-          <MetricCard label="Urgent" value={metrics.urgentRequests} color="border-red-600" />
-          <MetricCard label="Waiting for Citizen" value={metrics.waitingForCitizen} color="border-orange-400" />
-          <MetricCard label="Resolved This Week" value={metrics.resolvedThisWeek} color="border-green-500" />
-          <MetricCard label="Avg Resolution (days)" value={metrics.averageResolutionDays} color="border-gray-400" />
-          <MetricCard label="Aging (>7 days)" value={metrics.agingRequests} color="border-yellow-500" />
+      {(metricsError || requestsError) && (
+        <div className="space-y-2">
+          {metricsError && (
+            <div className="soft-alert border-red-200 bg-red-50 text-red-700">
+              {metricsError}
+            </div>
+          )}
+          {requestsError && (
+            <div className="soft-alert border-red-200 bg-red-50 text-red-700">
+              {requestsError}
+            </div>
+          )}
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="flex flex-wrap gap-3 mb-4">
+      {metrics ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <MetricCard label="Total Requests" value={metrics.totalRequests} color="bg-blue-500" />
+          <MetricCard label="New" value={metrics.newRequests} color="bg-sky-400" />
+          <MetricCard label="High Priority" value={metrics.highPriorityRequests} color="bg-red-400" />
+          <MetricCard label="Urgent" value={metrics.urgentRequests} color="bg-red-600" />
+          <MetricCard label="Waiting for Citizen" value={metrics.waitingForCitizen} color="bg-orange-400" />
+          <MetricCard label="Resolved This Week" value={metrics.resolvedThisWeek} color="bg-emerald-500" />
+          <MetricCard label="Avg Resolution (days)" value={metrics.averageResolutionDays} color="bg-slate-400" />
+          <MetricCard label="Aging (>7 days)" value={metrics.agingRequests} color="bg-amber-500" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="metric-card">
+            <p className="text-sm text-slate-500">{metricsLoading ? 'Loading dashboard metrics...' : 'No dashboard metrics available'}</p>
+          </div>
+        </div>
+      )}
+
+      <div className="app-card overflow-hidden">
+        <div className="border-b border-slate-200 bg-white px-5 py-4 sm:px-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Request Worklist</h2>
+            <p className="text-sm text-slate-500">Filter, review, and open cases that need attention.</p>
+          </div>
+          <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+            {requestsLoading ? 'Refreshing...' : `${requests.length} shown`}
+          </div>
+        </div>
+        </div>
+        <div className="p-5 sm:p-6">
+        <div className="mb-5 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 md:grid-cols-[180px_180px_1fr]">
           <select value={filters.status} onChange={e => { setFilters(f => ({ ...f, status: e.target.value })); setPage(0); }}
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm">
+            className="form-control">
             <option value="">All Statuses</option>
             <option value="NEW">New</option>
             <option value="IN_REVIEW">In Review</option>
@@ -64,7 +152,7 @@ export default function DashboardPage({ user }: { user: User }) {
             <option value="CLOSED">Closed</option>
           </select>
           <select value={filters.priority} onChange={e => { setFilters(f => ({ ...f, priority: e.target.value })); setPage(0); }}
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm">
+            className="form-control">
             <option value="">All Priorities</option>
             <option value="LOW">Low</option>
             <option value="MEDIUM">Medium</option>
@@ -73,52 +161,68 @@ export default function DashboardPage({ user }: { user: User }) {
           </select>
           <input value={filters.keyword}
             onChange={e => { setFilters(f => ({ ...f, keyword: e.target.value })); setPage(0); }}
-            placeholder="Search..."
-            className="border border-gray-300 rounded px-3 py-1.5 text-sm flex-1 min-w-[200px]" />
+            placeholder="Search request number or title..."
+            className="form-control" />
         </div>
 
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <table className="data-table min-w-[900px]">
+          <thead>
             <tr>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Request #</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Title</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Citizen</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Category</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Status</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Priority</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Assigned</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-600">Date</th>
-              <th className="px-3 py-2"></th>
+              <th>Request #</th>
+              <th>Title</th>
+              <th>Citizen</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Assigned</th>
+              <th>Date</th>
+              <th></th>
             </tr>
           </thead>
-          <tbody className="divide-y">
-            {requests.map(r => (
-              <tr key={r.id} className="hover:bg-gray-50">
-                <td className="px-3 py-2 font-mono text-xs">{r.requestNumber}</td>
-                <td className="px-3 py-2 max-w-[200px] truncate">{r.title}</td>
-                <td className="px-3 py-2 text-gray-600 text-xs">{r.citizenName}</td>
-                <td className="px-3 py-2 text-gray-600 text-xs">{r.categoryName}</td>
-                <td className="px-3 py-2"><StatusBadge status={r.status} /></td>
-                <td className="px-3 py-2"><PriorityBadge priority={r.priority} /></td>
-                <td className="px-3 py-2 text-xs text-gray-500">{r.assignedToName || '—'}</td>
-                <td className="px-3 py-2 text-xs text-gray-500">{new Date(r.createdAt).toLocaleDateString()}</td>
-                <td className="px-3 py-2">
-                  <Link to={`/staff/requests/${r.id}`} className="text-blue-600 hover:underline text-xs">Open</Link>
+          <tbody>
+            {requests.length > 0 ? requests.map(r => (
+              <tr key={r.id}>
+                <td>
+                  <span className="rounded-lg bg-slate-100 px-2 py-1 font-mono text-xs font-semibold text-slate-700">
+                    {r.requestNumber}
+                  </span>
+                </td>
+                <td className="max-w-[260px]">
+                  <p className="truncate font-semibold text-slate-900">{r.title}</p>
+                  <p className="mt-1 text-xs text-slate-500">Submitted by {r.citizenName}</p>
+                </td>
+                <td className="text-xs text-slate-600">{r.citizenName}</td>
+                <td className="text-xs text-slate-600">{r.categoryName}</td>
+                <td><StatusBadge status={r.status} /></td>
+                <td><PriorityBadge priority={r.priority} /></td>
+                <td className="text-xs text-slate-500">{r.assignedToName || 'Unassigned'}</td>
+                <td className="text-xs text-slate-500">{new Date(r.createdAt).toLocaleDateString()}</td>
+                <td className="text-right">
+                  <Link to={`/staff/requests/${r.id}`} className="inline-flex rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100">Open</Link>
                 </td>
               </tr>
-            ))}
+            )) : !requestsLoading && (
+              <tr>
+                <td colSpan={9} className="py-10 text-center text-sm text-slate-500">
+                  No requests found for the current filters.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
+        </div>
 
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-4">
             <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
-              className="px-3 py-1 border rounded text-sm disabled:opacity-50">Prev</button>
-            <span className="text-sm text-gray-500">Page {page + 1} of {totalPages}</span>
+              className="btn-secondary px-3 py-1.5">Prev</button>
+            <span className="text-sm text-slate-500">Page {page + 1} of {totalPages}</span>
             <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
-              className="px-3 py-1 border rounded text-sm disabled:opacity-50">Next</button>
+              className="btn-secondary px-3 py-1.5">Next</button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
