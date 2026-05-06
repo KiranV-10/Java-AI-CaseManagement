@@ -86,6 +86,7 @@ export default function StaffRequestDetailPage({ user }: { user: User }) {
         {/* Main info */}
         <div className="lg:col-span-2 space-y-4">
           <div className="app-card app-card-body">
+            <div className="mb-5 rounded-2xl bg-gradient-to-br from-blue-50 to-slate-50 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{req.requestNumber}</p>
@@ -96,7 +97,8 @@ export default function StaffRequestDetailPage({ user }: { user: User }) {
                 <PriorityBadge priority={req.priority} />
               </div>
             </div>
-            <p className="mt-4 text-sm leading-6 text-slate-600">{req.description}</p>
+            </div>
+            <p className="text-sm leading-6 text-slate-600">{req.description}</p>
             <div className="mt-5 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm sm:grid-cols-2">
               <div><span className="text-slate-500">Citizen:</span> {req.citizenName} ({req.citizenEmail})</div>
               <div><span className="text-slate-500">Category:</span> {req.categoryName}</div>

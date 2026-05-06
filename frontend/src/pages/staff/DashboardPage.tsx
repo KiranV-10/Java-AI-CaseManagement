@@ -128,14 +128,19 @@ export default function DashboardPage({ user }: { user: User }) {
         </div>
       )}
 
-      <div className="app-card">
-        <div className="app-card-body">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div className="app-card overflow-hidden">
+        <div className="border-b border-slate-200 bg-white px-5 py-4 sm:px-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">Requests</h2>
-            <p className="text-sm text-slate-500">Filter and open cases that need attention.</p>
+            <h2 className="text-lg font-semibold text-slate-900">Request Worklist</h2>
+            <p className="text-sm text-slate-500">Filter, review, and open cases that need attention.</p>
+          </div>
+          <div className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+            {requestsLoading ? 'Refreshing...' : `${requests.length} shown`}
           </div>
         </div>
+        </div>
+        <div className="p-5 sm:p-6">
         <div className="mb-5 grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 md:grid-cols-[180px_180px_1fr]">
           <select value={filters.status} onChange={e => { setFilters(f => ({ ...f, status: e.target.value })); setPage(0); }}
             className="form-control">
@@ -160,7 +165,7 @@ export default function DashboardPage({ user }: { user: User }) {
             className="form-control" />
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
         <table className="data-table min-w-[900px]">
           <thead>
             <tr>
@@ -178,16 +183,23 @@ export default function DashboardPage({ user }: { user: User }) {
           <tbody>
             {requests.length > 0 ? requests.map(r => (
               <tr key={r.id}>
-                <td className="font-mono text-xs text-slate-600">{r.requestNumber}</td>
-                <td className="max-w-[220px] truncate font-medium text-slate-900">{r.title}</td>
-                <td className="text-xs">{r.citizenName}</td>
-                <td className="text-xs">{r.categoryName}</td>
+                <td>
+                  <span className="rounded-lg bg-slate-100 px-2 py-1 font-mono text-xs font-semibold text-slate-700">
+                    {r.requestNumber}
+                  </span>
+                </td>
+                <td className="max-w-[260px]">
+                  <p className="truncate font-semibold text-slate-900">{r.title}</p>
+                  <p className="mt-1 text-xs text-slate-500">Submitted by {r.citizenName}</p>
+                </td>
+                <td className="text-xs text-slate-600">{r.citizenName}</td>
+                <td className="text-xs text-slate-600">{r.categoryName}</td>
                 <td><StatusBadge status={r.status} /></td>
                 <td><PriorityBadge priority={r.priority} /></td>
                 <td className="text-xs text-slate-500">{r.assignedToName || 'Unassigned'}</td>
                 <td className="text-xs text-slate-500">{new Date(r.createdAt).toLocaleDateString()}</td>
                 <td className="text-right">
-                  <Link to={`/staff/requests/${r.id}`} className="text-xs font-semibold text-blue-700 hover:text-blue-900">Open</Link>
+                  <Link to={`/staff/requests/${r.id}`} className="inline-flex rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100">Open</Link>
                 </td>
               </tr>
             )) : !requestsLoading && (
