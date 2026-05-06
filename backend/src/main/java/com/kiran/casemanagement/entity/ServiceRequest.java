@@ -28,7 +28,7 @@ public class ServiceRequest {
     @JoinColumn(name = "category_id", nullable = false)
     private RequestCategory category;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
