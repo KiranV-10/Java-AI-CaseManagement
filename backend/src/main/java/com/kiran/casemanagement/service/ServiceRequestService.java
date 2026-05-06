@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -154,10 +155,13 @@ public class ServiceRequestService {
         Priority priorityEnum = priority != null ? Priority.valueOf(priority) : null;
         LocalDateTime from = fromDate != null ? LocalDate.parse(fromDate).atStartOfDay() : null;
         LocalDateTime to = toDate != null ? LocalDate.parse(toDate).atTime(23, 59, 59) : null;
+        String keywordPattern = keyword == null || keyword.isBlank()
+                ? null
+                : "%" + keyword.toLowerCase(Locale.ROOT) + "%";
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return requestRepository.findWithFilters(statusEnum, categoryId, priorityEnum, assignedTo,
-                keyword, from, to, pageable).map(this::toListDto);
+                keywordPattern, from, to, pageable).map(this::toListDto);
     }
 
     @Transactional

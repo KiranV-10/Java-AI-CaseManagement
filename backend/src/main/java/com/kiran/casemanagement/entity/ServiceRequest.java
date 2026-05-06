@@ -28,10 +28,10 @@ public class ServiceRequest {
     @JoinColumn(name = "category_id", nullable = false)
     private RequestCategory category;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false)
     private String description;
 
     @Enumerated(EnumType.STRING)

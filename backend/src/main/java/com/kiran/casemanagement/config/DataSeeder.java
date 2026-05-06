@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.util.List;
@@ -21,9 +22,12 @@ public class DataSeeder implements CommandLineRunner {
     private final CategoryRepository categoryRepository;
     private final ServiceRequestRepository requestRepository;
     private final StatusHistoryRepository statusHistoryRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public void run(String... args) {
+        repairLegacyTextColumns();
+
         AppUser citizen = ensureUser("citizen@example.com", "Demo Citizen", RoleName.CITIZEN);
         AppUser worker = ensureUser("worker@example.com", "Jordan Caseworker", RoleName.CASE_WORKER);
         ensureUser("admin@example.com", "Taylor Admin", RoleName.ADMIN);
@@ -92,6 +96,27 @@ public class DataSeeder implements CommandLineRunner {
 
         log.info("Database seeded with {} users, {} categories, {} requests.",
                 userRepository.count(), categoryRepository.count(), requestRepository.count());
+    }
+
+    private void repairLegacyTextColumns() {
+        repairLegacyByteaColumn("service_requests", "title");
+        repairLegacyByteaColumn("service_requests", "description");
+    }
+
+    private void repairLegacyByteaColumn(String tableName, String columnName) {
+        String dataType = jdbcTemplate.queryForObject("""
+                SELECT data_type
+                FROM information_schema.columns
+                WHERE table_schema = current_schema()
+                  AND table_name = ?
+                  AND column_name = ?
+                """, String.class, tableName, columnName);
+
+        if ("bytea".equalsIgnoreCase(dataType)) {
+            log.warn("Repairing legacy bytea column {}.{} to text.", tableName, columnName);
+            jdbcTemplate.execute("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName
+                    + " TYPE text USING convert_from(" + columnName + ", 'UTF8')");
+        }
     }
 
     private AppUser ensureUser(String email, String fullName, RoleName role) {

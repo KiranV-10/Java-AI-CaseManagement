@@ -20,8 +20,8 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
            "(:categoryId IS NULL OR sr.category.id = :categoryId) AND " +
            "(:priority IS NULL OR sr.priority = :priority) AND " +
            "(:assignedToId IS NULL OR sr.assignedTo.id = :assignedToId) AND " +
-           "(:keyword IS NULL OR LOWER(sr.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-           "OR LOWER(sr.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+           "(:keywordPattern IS NULL OR LOWER(sr.title) LIKE :keywordPattern " +
+           "OR LOWER(sr.description) LIKE :keywordPattern) AND " +
            "(:fromDate IS NULL OR sr.createdAt >= :fromDate) AND " +
            "(:toDate IS NULL OR sr.createdAt <= :toDate)")
     Page<ServiceRequest> findWithFilters(
@@ -29,7 +29,7 @@ public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, 
             @Param("categoryId") Long categoryId,
             @Param("priority") Priority priority,
             @Param("assignedToId") Long assignedToId,
-            @Param("keyword") String keyword,
+            @Param("keywordPattern") String keywordPattern,
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate,
             Pageable pageable);
