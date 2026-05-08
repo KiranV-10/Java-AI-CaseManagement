@@ -4,21 +4,27 @@ import api from '../../api/client';
 import { User, RequestListItem } from '../../types';
 import StatusBadge from '../../components/StatusBadge';
 import PriorityBadge from '../../components/PriorityBadge';
+import AiCallout from '../../components/AiCallout';
 
 export default function MyRequestsPage({ user }: { user: User }) {
   const [requests, setRequests] = useState<RequestListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const openRequests = requests.filter(r => !['RESOLVED', 'CLOSED'].includes(r.status)).length;
   const waitingRequests = requests.filter(r => r.status === 'WAITING_FOR_CITIZEN').length;
   const highPriorityRequests = requests.filter(r => r.priority === 'HIGH' || r.priority === 'URGENT').length;
 
   useEffect(() => {
     api.get(`/requests/my?citizenId=${user.userId}`)
-      .then(r => setRequests(r.data))
+      .then(r => {
+        setRequests(r.data);
+        setError('');
+      })
+      .catch(() => setError('Unable to load your requests. Please refresh and try again.'))
       .finally(() => setLoading(false));
   }, [user.userId]);
 
-  if (loading) return <div className="app-card app-card-body text-sm text-slate-500">Loading your requests...</div>;
+  if (loading) return <div className="loading-panel">Loading your requests...</div>;
 
   return (
     <div className="space-y-6">
@@ -34,6 +40,8 @@ export default function MyRequestsPage({ user }: { user: User }) {
           </Link>
         </div>
       </div>
+
+      {error && <AiCallout tone="error" title="Requests could not be loaded" description={error} />}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="metric-card">

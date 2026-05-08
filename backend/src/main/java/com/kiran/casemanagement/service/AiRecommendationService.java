@@ -156,7 +156,9 @@ public class AiRecommendationService {
 
     public AiRecommendationDto getLatestRecommendation(Long requestId) {
         return aiRecommendationRepository
-                .findFirstByRequestIdAndStatusOrderByCreatedAtDesc(requestId, AiStatus.SUCCESS)
+                .findByRequestIdOrderByCreatedAtDesc(requestId)
+                .stream()
+                .findFirst()
                 .map(this::toDto)
                 .orElse(null);
     }

@@ -1,23 +1,38 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { Category } from '../../types';
+import AiCallout from '../../components/AiCallout';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState({ name: '', description: '', defaultPriority: 'MEDIUM', slaDays: 7 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const load = () => api.get('/admin/categories').then(r => setCategories(r.data));
+  const load = () => api.get('/admin/categories')
+    .then(r => {
+      setCategories(r.data);
+      setError('');
+    })
+    .catch(() => setError('Unable to load categories. Please try again.'))
+    .finally(() => setLoading(false));
   useEffect(() => { load(); }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const body = { ...form, slaDays: Number(form.slaDays) };
-    if (editId) {
-      await api.put(`/admin/categories/${editId}`, body);
-    } else {
-      await api.post('/admin/categories', body);
+    setError('');
+    try {
+      if (editId) {
+        await api.put(`/admin/categories/${editId}`, body);
+      } else {
+        await api.post('/admin/categories', body);
+      }
+    } catch {
+      setError('Unable to save the category. Please check the values and try again.');
+      return;
     }
     setForm({ name: '', description: '', defaultPriority: 'MEDIUM', slaDays: 7 });
     setShowForm(false);
@@ -32,8 +47,13 @@ export default function CategoriesPage() {
   };
 
   const handleDeactivate = async (id: number) => {
-    await api.delete(`/admin/categories/${id}`);
-    load();
+    setError('');
+    try {
+      await api.delete(`/admin/categories/${id}`);
+      load();
+    } catch {
+      setError('Unable to deactivate the category. Please try again.');
+    }
   };
 
   return (
@@ -53,6 +73,8 @@ export default function CategoriesPage() {
           </button>
         </div>
       </div>
+
+      {error && <AiCallout tone="error" title="Category action failed" description={error} />}
 
       {showForm && (
         <form onSubmit={handleSubmit} className="app-card app-card-body space-y-4">
@@ -126,6 +148,13 @@ export default function CategoriesPage() {
                 </td>
               </tr>
             ))}
+            {!loading && categories.length === 0 && (
+              <tr>
+                <td colSpan={6} className="py-10 text-center text-sm text-slate-500">
+                  No categories found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
