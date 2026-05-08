@@ -1,165 +1,265 @@
 # Labor Services AI Case Management Platform
 
-A full-stack Java Spring Boot and React case management application where citizens submit labor-related service requests and internal staff manage, assign, summarize, and resolve those cases using a database-backed workflow with real AI-assisted classification, prioritization, and summarization.
+A full-stack case management application for labor service workflows. Citizens can submit labor-related service requests, while staff can triage, assign, summarize, and resolve cases through a database-backed workflow with AI-assisted classification, prioritization, and summarization.
 
-## Role Alignment
+This project demonstrates Java Spring Boot development, JPA-based database access, REST API design, PostgreSQL schema modeling, React UI development, AI integration, testing, documentation, and Dockerized local setup.
 
-This project was built to demonstrate skills aligned with a Java Applications Developer role supporting government service applications. It highlights Java Spring Boot development, JPA-based database access, RESTful web services, SQL database design, React frontend development, real AI-assisted workflows, technical testing, documentation, and maintainable SDLC practices.
+## Highlights
 
-The job description mentions Angular. This project uses React + TypeScript for the frontend because the focus is on demonstrating full-stack architecture, REST API integration, component-based UI development, and maintainable application design. The frontend architecture is intentionally modular and could be adapted to Angular if required.
+- Citizen request intake with category, employer, incident date, contact preference, and supporting document metadata.
+- Staff dashboard for total, new, high-priority, urgent, and aging request metrics.
+- Request search and filtering by status, category, priority, assignment, keyword, and date range.
+- Case assignment, status transitions, internal notes, priority overrides, and audit logging.
+- Admin category management and audit log review.
+- Seeded demo users, categories, and realistic labor service requests for local testing.
+- Google Gemini integration for AI classification, priority suggestions, citizen guidance, and staff case summaries.
+- Swagger/OpenAPI documentation for backend endpoints.
+
+> AI-generated recommendations are for staff assistance only. They do not represent legal advice, official agency decisions, or final case outcomes.
 
 ## Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
-| Backend | Java 17, Spring Boot 3.2, Spring Data JPA |
-| Frontend | React 18, TypeScript, Tailwind CSS, Vite |
+| --- | --- |
+| Backend | Java 17, Spring Boot 3.2.5, Spring Web, Spring Data JPA, Bean Validation |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, Axios, React Router |
 | Database | PostgreSQL 16 |
 | AI | Google Gemini API |
-| API Docs | SpringDoc OpenAPI / Swagger UI |
-| Testing | JUnit 5, Mockito, Vitest, React Testing Library |
+| API Docs | SpringDoc OpenAPI, Swagger UI |
+| Testing | JUnit 5, Mockito, H2, Vitest, React Testing Library |
 | DevOps | Docker Compose, GitHub Actions CI |
+
+## Project Structure
+
+```text
+.
+|-- backend/                  # Spring Boot REST API
+|   |-- src/main/java/...      # Controllers, services, DTOs, entities, repositories
+|   |-- src/main/resources/    # Spring application configuration
+|   `-- src/test/java/...      # Backend unit tests
+|-- frontend/                 # React + TypeScript Vite app
+|   |-- src/api/               # Axios API client
+|   |-- src/components/        # Shared UI components
+|   |-- src/pages/             # Citizen, staff, admin, and login pages
+|   `-- src/__tests__/         # Frontend tests
+|-- docs/                     # Architecture, API, AI, database, and test data docs
+|-- docker-compose.yml         # Local PostgreSQL, backend, and frontend stack
+`-- .env.example               # Environment variable template
+```
 
 ## Features
 
-### Citizen Features
-- Submit labor service requests with category, description, and supporting details
-- View own requests with status tracking
-- Receive AI-generated guidance after submission
+### Citizen
 
-### Staff Features
-- Dashboard with metrics (total, new, high priority, urgent, aging requests)
-- Filter and search all requests
-- Assign cases, update status, add internal notes
-- Generate AI-powered case summaries
-- Override priority with audit trail
+- Log in with a seeded demo account.
+- Submit new labor service requests.
+- View personal request history and request details.
+- See AI-generated guidance when available.
 
-### Admin Features
-- Manage request categories (create, edit, deactivate)
-- View system-wide audit logs
+### Staff
 
-### Real AI Features
-- **Request Classification**: AI suggests category, priority, and provides citizen guidance
-- **Case Summarization**: AI generates summary, key facts, missing information, and next actions
-- **Missing Information Detection**: AI identifies what case workers need to collect
-- **Suggested Next Actions**: AI recommends administrative steps
+- Review dashboard metrics and workload indicators.
+- Search and filter all service requests.
+- Open staff request details with notes, assignment, AI recommendations, and status history.
+- Assign requests to case workers.
+- Move requests through controlled status transitions.
+- Add internal notes.
+- Generate AI-powered staff summaries.
+- Override priority while preserving an audit trail.
 
-The current MVP uses Google Gemini for real AI-powered classification and summarization. The AI provider layer is designed so AWS Bedrock Converse can be added using a separate Spring profile.
+### Admin
 
-## Real AI Setup
+- Create, update, deactivate, and view request categories.
+- Review system-wide audit logs.
 
-This MVP uses Google Gemini API for real AI-powered request classification and case summarization.
+## AI Behavior
 
-Create a `.env` file from `.env.example` and set:
+The backend uses an `AiProvider` abstraction. The current implementation calls Google Gemini for:
+
+- Request classification.
+- Suggested request priority.
+- Citizen-facing guidance.
+- Staff-facing case summaries.
+- Missing information detection.
+- Suggested next actions.
+
+If `GEMINI_API_KEY` is missing or the AI call fails, the application still saves requests and returns an unavailable AI recommendation instead of blocking the case workflow.
+
+## Prerequisites
+
+- Java 17+
+- Maven 3.9+
+- Node.js 20+
+- npm
+- Docker Desktop, if using Docker Compose
+- PostgreSQL 16, if running manually
+- Google Gemini API key, optional for AI features
+
+## Environment Variables
+
+Create a local `.env` file from the example:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Key values:
 
 ```env
 AI_PROVIDER=gemini
 GEMINI_API_KEY=your_gemini_api_key_here
 GEMINI_MODEL=gemini-2.0-flash
+
+POSTGRES_DB=case_management
+POSTGRES_USER=case_user
+POSTGRES_PASSWORD=case_password
+SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/case_management
+SPRING_DATASOURCE_USERNAME=case_user
+SPRING_DATASOURCE_PASSWORD=case_password
 ```
 
-If the API key is missing, the application will still save service requests, but AI recommendations will be shown as unavailable.
+For manual local backend runs, use a `localhost` database URL instead of the Docker service hostname:
 
-## How to Run Locally
+```powershell
+$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/case_management"
+$env:SPRING_DATASOURCE_USERNAME="case_user"
+$env:SPRING_DATASOURCE_PASSWORD="case_password"
+$env:GEMINI_API_KEY="your_gemini_api_key_here"
+```
 
-### Prerequisites
-- Java 17+
-- Node.js 20+
-- PostgreSQL 16 (or use Docker Compose)
-- Google Gemini API key (optional, for AI features)
+## Run Locally
 
-### Option 1: Docker Compose (Recommended)
+### Option 1: Docker Compose
 
-```bash
-cp .env.example .env
-# Edit .env and add your GEMINI_API_KEY
+```powershell
+Copy-Item .env.example .env
+# Edit .env and add GEMINI_API_KEY if you want live AI responses.
 
 docker compose up --build
 ```
 
-- Frontend: http://localhost:5173
-- Backend: http://localhost:8080
-- Swagger: http://localhost:8080/swagger-ui.html
-- Database: localhost:5432
+Local URLs:
+
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+- PostgreSQL: `localhost:5432`
 
 ### Option 2: Manual Setup
 
-**Database:**
-```bash
-createdb case_management
+Create a local PostgreSQL database and user that match the backend defaults:
+
+```sql
+CREATE USER case_user WITH PASSWORD 'case_password';
+CREATE DATABASE case_management OWNER case_user;
 ```
 
-**Backend:**
-```bash
+Start the backend:
+
+```powershell
 cd backend
-export GEMINI_API_KEY=your_key_here
+$env:SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/case_management"
+$env:SPRING_DATASOURCE_USERNAME="case_user"
+$env:SPRING_DATASOURCE_PASSWORD="case_password"
+$env:GEMINI_API_KEY="your_gemini_api_key_here"
 mvn spring-boot:run
 ```
 
-**Frontend:**
-```bash
+Start the frontend in a second terminal:
+
+```powershell
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
+The Vite dev server proxies `/api` requests to `http://localhost:8080`.
+
 ## Demo Accounts
 
-| Name | Email | Password | Role |
-|------|-------|----------|------|
-| Demo Citizen | citizen@example.com | password123 | CITIZEN |
-| Jordan Caseworker | worker@example.com | password123 | CASE_WORKER |
-| Taylor Admin | admin@example.com | password123 | ADMIN |
+All seeded demo users use `password123`.
 
-## How to Run Tests
+| Role | Name | Email |
+| --- | --- | --- |
+| Citizen | Demo Citizen | `citizen@example.com` |
+| Citizen | Maria Lopez | `maria.lopez@example.com` |
+| Citizen | Sam Patel | `sam.patel@example.com` |
+| Citizen | Priya Chen | `priya.chen@example.com` |
+| Citizen | Omar Johnson | `omar.johnson@example.com` |
+| Case Worker | Jordan Caseworker | `worker@example.com` |
+| Case Worker | Avery Senior Caseworker | `caseworker2@example.com` |
+| Admin | Taylor Admin | `admin@example.com` |
 
-**Backend:**
-```bash
+Authentication is intentionally simple for the MVP: the backend validates the seeded email/password pair and returns a mock token with the user's role.
+
+## API Overview
+
+Swagger UI is available at `http://localhost:8080/swagger-ui.html` after the backend starts.
+
+Primary endpoint groups:
+
+- `POST /api/auth/login`
+- `GET /api/categories/active`
+- `POST /api/requests`
+- `GET /api/requests/my`
+- `GET /api/requests/{id}`
+- `GET /api/staff/requests`
+- `GET /api/staff/requests/{id}`
+- `PUT /api/staff/requests/{id}/assign`
+- `PUT /api/staff/requests/{id}/status`
+- `POST /api/staff/requests/{id}/notes`
+- `PUT /api/staff/requests/{id}/priority`
+- `POST /api/staff/requests/{id}/ai-summary`
+- `GET /api/dashboard/metrics`
+- `GET /api/admin/categories`
+- `POST /api/admin/categories`
+- `PUT /api/admin/categories/{id}`
+- `DELETE /api/admin/categories/{id}`
+- `GET /api/admin/audit-logs`
+
+See [`docs/api-design.md`](docs/api-design.md) for the full API contract.
+
+## Run Tests
+
+Backend:
+
+```powershell
 cd backend
 mvn test
 ```
 
-**Frontend:**
-```bash
+Frontend:
+
+```powershell
 cd frontend
 npm test
 ```
 
-## API Documentation
+Frontend production build:
 
-Interactive Swagger UI available at: http://localhost:8080/swagger-ui.html
+```powershell
+cd frontend
+npm run build
+```
 
-See [docs/api-design.md](docs/api-design.md) for the full API contract.
+## Documentation
 
-## Architecture
-
-See [docs/architecture.md](docs/architecture.md) for the system architecture overview.
-
-## Database Schema
-
-See [docs/database-schema.md](docs/database-schema.md) for table definitions.
-
-## AI Design
-
-See [docs/ai-design.md](docs/ai-design.md) for AI provider architecture, prompt templates, and error handling strategy.
-
-> AI-generated recommendations are for staff assistance only. They do not represent legal advice, official agency decisions, or final case outcomes.
+- [`docs/architecture.md`](docs/architecture.md) - system architecture overview.
+- [`docs/api-design.md`](docs/api-design.md) - REST API contract.
+- [`docs/database-schema.md`](docs/database-schema.md) - table definitions and relationships.
+- [`docs/ai-design.md`](docs/ai-design.md) - AI provider design, prompt templates, and error handling.
+- [`docs/testdata.md`](docs/testdata.md) - seeded demo data reference.
 
 ## Future Enhancements
 
-- Add AWS Bedrock Converse provider
-- Add Google Vertex AI profile
-- Add ServiceNow ticket creation integration
-- Add file upload to AWS S3
-- Add email notifications
-- Add JWT authentication
-- Add DB2 deployment profile
-- Add advanced reporting
-- Add OpenSearch case search
-- Add Veracode/SAST scanning
-- Deploy backend to AWS or Azure
-- Deploy frontend to Vercel or Azure Static Web Apps
-
----
-
-I built a full-stack Java Spring Boot and React case management platform inspired by labor service workflows. It allows citizens to submit service requests and internal staff to manage, assign, summarize, and resolve cases. The project uses real Google Gemini AI assistance for request classification, priority suggestion, missing information detection, and staff case summarization. It demonstrates Java application development, JPA-based database design, REST APIs, React UI development, AI integration, role-based workflows, testing, documentation, and Dockerized local setup.
+- Add production-grade JWT authentication and authorization.
+- Add AWS Bedrock Converse and Google Vertex AI provider profiles.
+- Add file upload storage through AWS S3 or Azure Blob Storage.
+- Add email notifications for citizen and staff workflow events.
+- Add ServiceNow or external ticketing integration.
+- Add DB2 deployment profile.
+- Add advanced reporting and export workflows.
+- Add OpenSearch-backed case search.
+- Add SAST scanning and deployment hardening.
+- Deploy the backend to AWS or Azure and the frontend to Vercel or Azure Static Web Apps.
