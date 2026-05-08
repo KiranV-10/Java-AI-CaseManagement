@@ -1,15 +1,26 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { AuditLogEntry, PageResponse } from '../../types';
+import AiCallout from '../../components/AiCallout';
 
 export default function AuditLogsPage() {
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
+    setLoading(true);
+    setError('');
     api.get<PageResponse<AuditLogEntry>>(`/admin/audit-logs?page=${page}&size=30`)
-      .then(r => { setLogs(r.data.content); setTotalPages(r.data.totalPages); });
+      .then(r => { setLogs(r.data.content); setTotalPages(r.data.totalPages); })
+      .catch(() => {
+        setLogs([]);
+        setTotalPages(0);
+        setError('Unable to load audit logs. Please try again.');
+      })
+      .finally(() => setLoading(false));
   }, [page]);
 
   return (
@@ -19,6 +30,8 @@ export default function AuditLogsPage() {
         <h1 className="mt-3 text-3xl font-semibold tracking-tight">Audit Logs</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100">Review system activity and changes made by staff.</p>
       </div>
+
+      {error && <AiCallout tone="error" title="Audit logs could not be loaded" description={error} />}
 
       <div className="table-wrap overflow-x-auto">
         <table className="data-table min-w-[920px]">
@@ -43,6 +56,13 @@ export default function AuditLogsPage() {
                 <td className="text-xs text-slate-500">{new Date(l.createdAt).toLocaleString()}</td>
               </tr>
             ))}
+            {!loading && logs.length === 0 && (
+              <tr>
+                <td colSpan={6} className="py-10 text-center text-sm text-slate-500">
+                  No audit logs found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

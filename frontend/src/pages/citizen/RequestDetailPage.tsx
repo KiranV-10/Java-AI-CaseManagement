@@ -5,6 +5,7 @@ import { RequestDetail } from '../../types';
 import StatusBadge from '../../components/StatusBadge';
 import PriorityBadge from '../../components/PriorityBadge';
 import AiDisclaimer from '../../components/AiDisclaimer';
+import AiCallout from '../../components/AiCallout';
 
 export default function CitizenRequestDetailPage() {
   const { id } = useParams();
@@ -15,8 +16,8 @@ export default function CitizenRequestDetailPage() {
     api.get(`/requests/${id}`).then(r => setReq(r.data)).finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div className="app-card app-card-body text-sm text-slate-500">Loading request...</div>;
-  if (!req) return <div className="app-card app-card-body text-sm text-red-600">Request not found.</div>;
+  if (loading) return <div className="loading-panel">Loading request...</div>;
+  if (!req) return <AiCallout tone="error" title="Request not found" description="Please return to My Requests and try again." />;
 
   return (
     <div className="max-w-3xl mx-auto space-y-5">
@@ -37,25 +38,33 @@ export default function CitizenRequestDetailPage() {
         </div>
         <p className="text-sm leading-6 text-slate-600">{req.description}</p>
 
-        <div className="mt-5 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm sm:grid-cols-2">
-          <div><span className="text-slate-500">Category:</span> {req.categoryName}</div>
-          <div><span className="text-slate-500">Contact:</span> {req.preferredContactMethod}</div>
-          {req.employerName && <div><span className="text-slate-500">Employer:</span> {req.employerName}</div>}
-          {req.incidentDate && <div><span className="text-slate-500">Incident Date:</span> {req.incidentDate}</div>}
-          <div><span className="text-slate-500">Submitted:</span> {new Date(req.createdAt).toLocaleString()}</div>
-          {req.resolvedAt && <div><span className="text-slate-500">Resolved:</span> {new Date(req.resolvedAt).toLocaleString()}</div>}
+        <div className="detail-grid mt-5">
+          <div><p className="detail-label">Category</p><p className="detail-value">{req.categoryName}</p></div>
+          <div><p className="detail-label">Contact</p><p className="detail-value">{req.preferredContactMethod}</p></div>
+          {req.employerName && <div><p className="detail-label">Employer</p><p className="detail-value">{req.employerName}</p></div>}
+          {req.incidentDate && <div><p className="detail-label">Incident Date</p><p className="detail-value">{req.incidentDate}</p></div>}
+          <div><p className="detail-label">Submitted</p><p className="detail-value">{new Date(req.createdAt).toLocaleString()}</p></div>
+          {req.resolvedAt && <div><p className="detail-label">Resolved</p><p className="detail-value">{new Date(req.resolvedAt).toLocaleString()}</p></div>}
         </div>
       </div>
 
       {req.aiRecommendation && req.aiRecommendation.citizenGuidance && (
         <div className="app-card app-card-body">
-          <h3 className="font-semibold mb-2 text-slate-900">Guidance for You</h3>
-          <p className="text-sm leading-6 text-slate-700">{req.aiRecommendation.citizenGuidance}</p>
+          <h3 className="section-title mb-3">Guidance for You</h3>
+          <AiCallout tone="info" title="AI guidance" description={req.aiRecommendation.citizenGuidance} />
           {req.aiRecommendation.citizenFriendlyExplanation && (
             <p className="text-sm leading-6 text-slate-600 mt-2">{req.aiRecommendation.citizenFriendlyExplanation}</p>
           )}
           <AiDisclaimer />
         </div>
+      )}
+
+      {req.aiRecommendation?.status === 'FAILED' && (
+        <AiCallout
+          tone="warning"
+          title="AI guidance is unavailable"
+          description="Your request is still saved and staff can continue reviewing it manually."
+        />
       )}
 
       {req.statusHistory.length > 0 && (

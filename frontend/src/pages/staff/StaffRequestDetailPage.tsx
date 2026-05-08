@@ -5,11 +5,14 @@ import { User, RequestDetail, AiSummaryResult } from '../../types';
 import StatusBadge from '../../components/StatusBadge';
 import PriorityBadge from '../../components/PriorityBadge';
 import AiDisclaimer from '../../components/AiDisclaimer';
+import AiCallout from '../../components/AiCallout';
 
 export default function StaffRequestDetailPage({ user }: { user: User }) {
   const { id } = useParams();
   const [req, setReq] = useState<RequestDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [actionError, setActionError] = useState('');
   const [aiSummary, setAiSummary] = useState<AiSummaryResult | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
 
@@ -18,52 +21,84 @@ export default function StaffRequestDetailPage({ user }: { user: User }) {
   const [priorityForm, setPriorityForm] = useState({ priority: '', reason: '' });
 
   const reload = () => {
-    api.get(`/staff/requests/${id}`).then(r => setReq(r.data));
+    api.get(`/staff/requests/${id}`)
+      .then(r => {
+        setReq(r.data);
+        setLoadError('');
+      })
+      .catch(() => setLoadError('Unable to refresh this request. Please try again.'));
   };
 
   useEffect(() => {
-    api.get(`/staff/requests/${id}`).then(r => setReq(r.data)).finally(() => setLoading(false));
+    api.get(`/staff/requests/${id}`)
+      .then(r => {
+        setReq(r.data);
+        setLoadError('');
+      })
+      .catch(() => setLoadError('Unable to load this request. Please return to the dashboard and try again.'))
+      .finally(() => setLoading(false));
   }, [id]);
 
   const handleAssign = async () => {
-    await api.put(`/staff/requests/${id}/assign`, { assignedToUserId: user.userId });
-    reload();
+    setActionError('');
+    try {
+      await api.put(`/staff/requests/${id}/assign`, { assignedToUserId: user.userId });
+      reload();
+    } catch {
+      setActionError('Unable to assign this request.');
+    }
   };
 
   const handleStatusUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.put(`/staff/requests/${id}/status`, {
-      newStatus: statusForm.newStatus,
-      reason: statusForm.reason,
-      changedByUserId: user.userId,
-    });
-    setStatusForm({ newStatus: '', reason: '' });
-    reload();
+    setActionError('');
+    try {
+      await api.put(`/staff/requests/${id}/status`, {
+        newStatus: statusForm.newStatus,
+        reason: statusForm.reason,
+        changedByUserId: user.userId,
+      });
+      setStatusForm({ newStatus: '', reason: '' });
+      reload();
+    } catch {
+      setActionError('Unable to update the request status. Check the transition and reason, then try again.');
+    }
   };
 
   const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post(`/staff/requests/${id}/notes`, {
-      authorUserId: user.userId,
-      noteText: noteForm.noteText,
-      internalOnly: noteForm.internalOnly,
-    });
-    setNoteForm({ noteText: '', internalOnly: true });
-    reload();
+    setActionError('');
+    try {
+      await api.post(`/staff/requests/${id}/notes`, {
+        authorUserId: user.userId,
+        noteText: noteForm.noteText,
+        internalOnly: noteForm.internalOnly,
+      });
+      setNoteForm({ noteText: '', internalOnly: true });
+      reload();
+    } catch {
+      setActionError('Unable to add the note. Please try again.');
+    }
   };
 
   const handlePriorityOverride = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.put(`/staff/requests/${id}/priority`, {
-      priority: priorityForm.priority,
-      changedByUserId: user.userId,
-      reason: priorityForm.reason,
-    });
-    setPriorityForm({ priority: '', reason: '' });
-    reload();
+    setActionError('');
+    try {
+      await api.put(`/staff/requests/${id}/priority`, {
+        priority: priorityForm.priority,
+        changedByUserId: user.userId,
+        reason: priorityForm.reason,
+      });
+      setPriorityForm({ priority: '', reason: '' });
+      reload();
+    } catch {
+      setActionError('Unable to override the priority. Add a reason and try again.');
+    }
   };
 
   const handleGenerateSummary = async () => {
+    setActionError('');
     setSummaryLoading(true);
     try {
       const { data } = await api.post(`/staff/requests/${id}/ai-summary`);
@@ -75,12 +110,23 @@ export default function StaffRequestDetailPage({ user }: { user: User }) {
     }
   };
 
-  if (loading) return <div className="app-card app-card-body text-sm text-slate-500">Loading request...</div>;
-  if (!req) return <div className="app-card app-card-body text-sm text-red-600">Request not found.</div>;
+  if (loading) return <div className="loading-panel">Loading request...</div>;
+  if (!req) {
+    return (
+      <AiCallout
+        tone="error"
+        title="Request could not be loaded"
+        description={loadError || 'Request not found.'}
+      />
+    );
+  }
 
   return (
     <div className="space-y-5">
       <Link to="/staff/dashboard" className="text-sm font-semibold text-blue-700 hover:text-blue-900">&larr; Back to Dashboard</Link>
+      {(loadError || actionError) && (
+        <AiCallout tone="error" title="Something needs attention" description={actionError || loadError} />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Main info */}
@@ -99,44 +145,66 @@ export default function StaffRequestDetailPage({ user }: { user: User }) {
             </div>
             </div>
             <p className="text-sm leading-6 text-slate-600">{req.description}</p>
-            <div className="mt-5 grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm sm:grid-cols-2">
-              <div><span className="text-slate-500">Citizen:</span> {req.citizenName} ({req.citizenEmail})</div>
-              <div><span className="text-slate-500">Category:</span> {req.categoryName}</div>
-              <div><span className="text-slate-500">Contact:</span> {req.preferredContactMethod}</div>
-              {req.phoneNumber && <div><span className="text-slate-500">Phone:</span> {req.phoneNumber}</div>}
-              {req.employerName && <div><span className="text-slate-500">Employer:</span> {req.employerName}</div>}
-              {req.incidentDate && <div><span className="text-slate-500">Incident:</span> {req.incidentDate}</div>}
-              <div><span className="text-slate-500">Assigned:</span> {req.assignedToName || 'Unassigned'}</div>
-              <div><span className="text-slate-500">Created:</span> {new Date(req.createdAt).toLocaleString()}</div>
+            <div className="detail-grid mt-5">
+              <div><p className="detail-label">Citizen</p><p className="detail-value">{req.citizenName}</p><p className="text-xs text-slate-500">{req.citizenEmail}</p></div>
+              <div><p className="detail-label">Category</p><p className="detail-value">{req.categoryName}</p></div>
+              <div><p className="detail-label">Contact</p><p className="detail-value">{req.preferredContactMethod}</p></div>
+              {req.phoneNumber && <div><p className="detail-label">Phone</p><p className="detail-value">{req.phoneNumber}</p></div>}
+              {req.employerName && <div><p className="detail-label">Employer</p><p className="detail-value">{req.employerName}</p></div>}
+              {req.incidentDate && <div><p className="detail-label">Incident</p><p className="detail-value">{req.incidentDate}</p></div>}
+              <div><p className="detail-label">Assigned</p><p className="detail-value">{req.assignedToName || 'Unassigned'}</p></div>
+              <div><p className="detail-label">Created</p><p className="detail-value">{new Date(req.createdAt).toLocaleString()}</p></div>
             </div>
           </div>
 
           {/* AI Recommendation */}
           {req.aiRecommendation && (
             <div className="app-card app-card-body">
-              <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+              <h3 className="section-title mb-3 flex flex-wrap items-center gap-2">
                 AI Recommendation
                 <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-blue-200">{req.aiRecommendation.provider} / {req.aiRecommendation.model}</span>
               </h3>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div><span className="text-slate-500">Suggested Category:</span> {req.aiRecommendation.suggestedCategory}</div>
-                <div><span className="text-slate-500">Suggested Priority:</span> <PriorityBadge priority={req.aiRecommendation.suggestedPriority} /></div>
-                <div><span className="text-slate-500">Confidence:</span> {req.aiRecommendation.confidenceScore ? (req.aiRecommendation.confidenceScore * 100).toFixed(0) + '%' : 'N/A'}</div>
-              </div>
-              {req.aiRecommendation.reasoning && (
-                <p className="text-sm text-slate-600 mt-2"><span className="text-slate-500">Reasoning:</span> {req.aiRecommendation.reasoning}</p>
+              {req.aiRecommendation.status === 'FAILED' ? (
+                <AiCallout
+                  tone="warning"
+                  title="AI recommendation failed"
+                  description="The request is still available for manual staff review."
+                >
+                  {req.aiRecommendation.errorMessage && (
+                    <details className="rounded-xl border border-amber-200 bg-white/50 p-3">
+                      <summary className="cursor-pointer font-semibold">Technical details</summary>
+                      <p className="mt-2 break-words text-xs">{req.aiRecommendation.errorMessage}</p>
+                    </details>
+                  )}
+                </AiCallout>
+              ) : (
+                <>
+                  <div className="detail-grid">
+                    <div><p className="detail-label">Suggested Category</p><p className="detail-value">{req.aiRecommendation.suggestedCategory}</p></div>
+                    <div><p className="detail-label">Suggested Priority</p><div className="mt-1"><PriorityBadge priority={req.aiRecommendation.suggestedPriority} /></div></div>
+                    <div><p className="detail-label">Confidence</p><p className="detail-value">{req.aiRecommendation.confidenceScore ? (req.aiRecommendation.confidenceScore * 100).toFixed(0) + '%' : 'N/A'}</p></div>
+                  </div>
+                  {req.aiRecommendation.reasoning && (
+                    <p className="mt-3 text-sm leading-6 text-slate-600"><span className="font-medium text-slate-700">Reasoning:</span> {req.aiRecommendation.reasoning}</p>
+                  )}
+                  {req.aiRecommendation.citizenGuidance && (
+                    <div className="mt-3">
+                      <AiCallout tone="info" title="Citizen guidance" description={req.aiRecommendation.citizenGuidance} />
+                    </div>
+                  )}
+                  <AiDisclaimer />
+                </>
               )}
-              {req.aiRecommendation.citizenGuidance && (
-                <p className="text-sm text-slate-600 mt-1"><span className="text-slate-500">Citizen Guidance:</span> {req.aiRecommendation.citizenGuidance}</p>
-              )}
-              <AiDisclaimer />
             </div>
           )}
 
           {/* AI Summary */}
           <div className="app-card app-card-body">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-sm">AI Case Summary</h3>
+            <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="section-title">AI Case Summary</h3>
+                <p className="section-subtitle">Generate a staff-facing summary from request details, notes, and status history.</p>
+              </div>
               <button onClick={handleGenerateSummary} disabled={summaryLoading}
                 className="btn-primary px-3 py-1.5 text-xs">
                 {summaryLoading ? 'Generating...' : 'Generate AI Summary'}
@@ -144,29 +212,36 @@ export default function StaffRequestDetailPage({ user }: { user: User }) {
             </div>
             {aiSummary && aiSummary.aiStatus === 'SUCCESS' && (
               <div className="space-y-3 text-sm">
-                <div><span className="text-slate-500 font-medium">Summary:</span> <p className="mt-1">{aiSummary.summary}</p></div>
+                <AiCallout tone="success" title="Summary" description={aiSummary.summary} />
                 {aiSummary.keyFacts.length > 0 && (
-                  <div>
-                    <span className="text-slate-500 font-medium">Key Facts:</span>
-                    <ul className="list-disc ml-5 mt-1">{aiSummary.keyFacts.map((f, i) => <li key={i}>{f}</li>)}</ul>
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <span className="font-medium text-slate-700">Key Facts</span>
+                    <ul className="ml-5 mt-2 list-disc space-y-1 text-slate-600">{aiSummary.keyFacts.map((f, i) => <li key={i}>{f}</li>)}</ul>
                   </div>
                 )}
                 {aiSummary.missingInformation.length > 0 && (
-                  <div>
-                    <span className="text-slate-500 font-medium">Missing Information:</span>
-                    <ul className="list-disc ml-5 mt-1 text-orange-700">{aiSummary.missingInformation.map((m, i) => <li key={i}>{m}</li>)}</ul>
+                  <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
+                    <span className="font-medium text-orange-800">Missing Information</span>
+                    <ul className="ml-5 mt-2 list-disc space-y-1 text-orange-700">{aiSummary.missingInformation.map((m, i) => <li key={i}>{m}</li>)}</ul>
                   </div>
                 )}
                 {aiSummary.suggestedNextAction && (
-                  <div><span className="text-gray-500 font-medium">Suggested Next Action:</span> <p className="mt-1 text-blue-700">{aiSummary.suggestedNextAction}</p></div>
+                  <AiCallout tone="info" title="Suggested next action" description={aiSummary.suggestedNextAction} />
                 )}
                 <AiDisclaimer />
               </div>
             )}
             {aiSummary && aiSummary.aiStatus === 'FAILED' && (
-              <p className="text-sm text-red-600">AI recommendation unavailable. {aiSummary.errorMessage}</p>
+              <AiCallout tone="warning" title="AI summary unavailable" description="The case workflow is still available. Review request details, notes, and history manually.">
+                {aiSummary.errorMessage && (
+                  <details className="rounded-xl border border-amber-200 bg-white/50 p-3">
+                    <summary className="cursor-pointer font-semibold">Technical details</summary>
+                    <p className="mt-2 break-words text-xs">{aiSummary.errorMessage}</p>
+                  </details>
+                )}
+              </AiCallout>
             )}
-            {!aiSummary && <p className="text-sm text-slate-400">Click "Generate AI Summary" to analyze this case.</p>}
+            {!aiSummary && <AiCallout tone="info" title="Ready to analyze" description="Click Generate AI Summary to produce a concise staff summary for this case." />}
           </div>
 
           {/* Notes */}
